@@ -30,10 +30,7 @@ output  wire            video_hs,
 ///////////////////////////////////////////////////
 // bridge bus connection
 // synchronous to clk_74a
-output  wire            bridge_endian_little,
 input   wire    [31:0]  bridge_addr,
-input   wire            bridge_rd,
-output  reg     [31:0]  bridge_rd_data,
 input   wire            bridge_wr,
 input   wire    [31:0]  bridge_wr_data
 );
