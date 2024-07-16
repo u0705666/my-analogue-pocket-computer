@@ -18,7 +18,6 @@ cr_ie_info.json
 *.sof
 *.sopc_builder
 *.summary
-*.txt
 *.bak
 *.cmp
 *.done
