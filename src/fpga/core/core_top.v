@@ -603,6 +603,34 @@ assign video_hs = vidout_hs;
 	localparam	VID_H_ACTIVE = 'd320;
 	localparam	VID_H_TOTAL = 'd400;
 	
+	
+	localparam CELL_WIDTH = 8;    // Width of each cell in pixels
+	localparam CELL_HEIGHT = 8;   // Height of each cell in pixels
+	localparam GRID_COLS = 40;     // Number of columns
+	localparam GRID_ROWS = 30;     // Number of rows
+	
+	// Dual-port RAM for grid
+	reg [0:0] grid_ram [0:GRID_ROWS-1][0:GRID_COLS-1];
+	reg [5:0] cell_col;
+	reg [4:0] cell_row;
+	reg cell_state;
+	reg [3:0] cell_pixel_x;
+	reg [3:0] cell_pixel_y;
+
+	// Write port (clk_74a domain)
+	/*
+	always @(posedge clk_74a) begin
+		 if (bridge_wr && bridge_addr == 32'h00400000) begin
+			  grid_ram[bridge_wr_data[15:8]][bridge_wr_data[7:0]] <= bridge_wr_data[16];
+		 end
+	end
+	*/
+
+	// Read port (video_rgb_clock domain)
+	always @(posedge video_rgb_clock) begin
+		 cell_state <= grid_ram[cell_row][cell_col];
+	end
+	
 	reg	[15:0]	frame_count;
 	
 	reg	[9:0]	x_count;
@@ -622,6 +650,28 @@ assign video_hs = vidout_hs;
 	
 	reg	[9:0]	square_x = INIT_X;
 	reg	[9:0]	square_y = INIT_Y;
+	
+
+	integer i, j;
+
+always @(posedge clk_74a or negedge reset_n) begin
+    if (!reset_n) begin
+        // Reset logic to initialize the grid
+        for (i = 0; i < GRID_ROWS; i = i + 1) begin
+            for (j = 0; j < GRID_COLS; j = j + 1) begin
+                grid_ram[i][j] <= 0; // Initialize all cells to black
+            end
+        end
+    end else begin
+        // Normal operation
+        for (i = 0; i < GRID_ROWS; i = i + 1) begin
+            for (j = 0; j < GRID_COLS; j = j + 1) begin
+                grid_ram[i][j] <= (i+j)%2; // Initialize all cells
+            end
+        end
+    end
+end
+
 
 always @(posedge video_rgb_clock or negedge reset_n) begin
 
@@ -684,9 +734,9 @@ always @(posedge video_rgb_clock or negedge reset_n) begin
 				vidout_de <= 1;
 				
 				// generate the sliding XOR background
-				vidout_rgb[23:16] <= (visible_x + frame_count / 1) ^ (visible_y + frame_count/1);
-				vidout_rgb[15:8]  <= (visible_x + frame_count / 2) ^ (visible_y - frame_count/2);
-				vidout_rgb[7:0]	  <= (visible_x - frame_count / 1) ^ (visible_y + 128);
+				//vidout_rgb[23:16] <= (visible_x + frame_count / 1) ^ (visible_y + frame_count/1);
+				//vidout_rgb[15:8]  <= (visible_x + frame_count / 2) ^ (visible_y - frame_count/2);
+				//vidout_rgb[7:0]	  <= (visible_x - frame_count / 1) ^ (visible_y + 128);
 				
 				// blank out background channels if they are masked
 				if(~video_channel_enable_s[2]) vidout_rgb[23:16] <= 0;
@@ -722,6 +772,21 @@ always @(posedge video_rgb_clock or negedge reset_n) begin
 						else 
 							vidout_rgb <= 24'hFFFFFF; 
 					end
+				end
+				
+				// generate background
+				if(visible_x < square_x+1 || visible_x >= square_x+50-1 || visible_y < square_y+1 || visible_y >= square_y+50-1) begin
+						// Calculate cell indices
+						cell_col = visible_x / CELL_WIDTH;
+						cell_row = visible_y / CELL_HEIGHT;
+
+						// Access cell state from grid_ram
+						cell_state = grid_ram[cell_row][cell_col];
+
+						// Calculate position within the cell
+						cell_pixel_x = visible_x % CELL_WIDTH;
+						cell_pixel_y = visible_y % CELL_HEIGHT;
+						vidout_rgb <= (cell_state == 1'b1) ? 24'hFFFFFF : 24'h000000;
 				end
 				
 			end 
@@ -789,6 +854,39 @@ always @(posedge video_rgb_clock or negedge reset_n) begin
 end
 
 
+/*
+
+always @(posedge video_rgb_clock or negedge reset_n) begin
+    if (~reset_n) begin
+        // Reset logic
+    end else begin
+        // Existing timing logic...
+
+        if (vidout_de) begin
+            // Calculate cell indices
+            cell_col = visible_x / CELL_WIDTH;
+            cell_row = visible_y / CELL_HEIGHT;
+
+            // Access cell state from grid_ram
+            cell_state = grid_ram[cell_row][cell_col];
+
+            // Calculate position within the cell
+            cell_pixel_x = visible_x % CELL_WIDTH;
+            cell_pixel_y = visible_y % CELL_HEIGHT;
+
+            // Optional: Add borders
+            if (cell_pixel_x == 0 || cell_pixel_y == 0) begin
+                vidout_rgb <= 24'h888888; // Gray borders
+            end else begin
+                // Set color based on cell state
+                vidout_rgb <= (cell_state == 1'b1) ? 24'hFFFFFF : 24'h000000;
+            end
+        end else begin
+            vidout_rgb <= 24'h000000; // Outside visible area
+        end
+    end
+end
+*/
 
 
 //
