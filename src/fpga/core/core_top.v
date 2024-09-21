@@ -608,28 +608,15 @@ assign video_hs = vidout_hs;
 	localparam CELL_HEIGHT = 8;   // Height of each cell in pixels
 	localparam GRID_COLS = 40;     // Number of columns
 	localparam GRID_ROWS = 30;     // Number of rows
+	localparam TOTAL_CELLS = GRID_ROWS * GRID_COLS;
 	
-	// Dual-port RAM for grid
-	reg [0:0] grid_ram [0:GRID_ROWS-1][0:GRID_COLS-1];
+	// reg [0:0] grid_ram [0:GRID_ROWS-1][0:GRID_COLS-1];
 	reg [5:0] cell_col;
 	reg [4:0] cell_row;
 	reg cell_state;
 	reg [3:0] cell_pixel_x;
 	reg [3:0] cell_pixel_y;
 
-	// Write port (clk_74a domain)
-	/*
-	always @(posedge clk_74a) begin
-		 if (bridge_wr && bridge_addr == 32'h00400000) begin
-			  grid_ram[bridge_wr_data[15:8]][bridge_wr_data[7:0]] <= bridge_wr_data[16];
-		 end
-	end
-	*/
-
-	// Read port (video_rgb_clock domain)
-	always @(posedge video_rgb_clock) begin
-		 cell_state <= grid_ram[cell_row][cell_col];
-	end
 	
 	reg	[15:0]	frame_count;
 	
@@ -654,18 +641,36 @@ assign video_hs = vidout_hs;
 
 	integer i, j;
 
-always @(posedge clk_74a or negedge reset_n) begin
-    if (!reset_n) begin
-        // Reset logic to initialize the grid
-        for (i = 0; i < GRID_ROWS; i = i + 1) begin
-            for (j = 0; j < GRID_COLS; j = j + 1) begin
-                grid_ram[i][j] <= (i+j)%2; // Initialize to chessboard background
-            end
-        end
-    end else begin
-        // Normal operation
-    end
+// always @(posedge clk_74a or negedge reset_n) begin
+//     if (!reset_n) begin
+//         // Reset logic to initialize the grid
+//         for (i = 0; i < GRID_ROWS; i = i + 1) begin
+//             for (j = 0; j < GRID_COLS; j = j + 1) begin
+// 				grid_ram[i*GRID_COLS + j] <= (i+j)%2; // initialize to chessboard like background
+//             end
+//         end
+//     end else begin
+//         // Normal operation
+//     end
+// end
+
+wire [TOTAL_CELLS-1:0] grid_ram_wire;
+reg [TOTAL_CELLS-1:0] grid_ram;
+
+video_driver #(
+	.RAM_LENGTH(GRID_ROWS*GRID_COLS), 
+	.GRID_COLS(GRID_COLS), 
+	.GRID_ROWS(GRID_ROWS)) 
+vd1(
+	.clk(clk_74a),
+	.reset_n(reset_n),
+	.grid_ram(grid_ram_wire)
+);
+
+always @(posedge clk_74a) begin
+	grid_ram <= grid_ram_wire;
 end
+
 
 
 always @(posedge video_rgb_clock or negedge reset_n) begin
@@ -776,7 +781,11 @@ always @(posedge video_rgb_clock or negedge reset_n) begin
 						cell_row = visible_y / CELL_HEIGHT;
 
 						// Access cell state from grid_ram
-						cell_state = grid_ram[cell_row][cell_col];
+						if (cell_col < GRID_COLS && cell_row < GRID_ROWS) begin
+							cell_state = grid_ram[cell_row * GRID_COLS + cell_col];
+						end else begin
+							cell_state = 1'b0;
+						end
 
 						// Calculate position within the cell
 						cell_pixel_x = visible_x % CELL_WIDTH;
