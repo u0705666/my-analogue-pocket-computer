@@ -659,16 +659,11 @@ always @(posedge clk_74a or negedge reset_n) begin
         // Reset logic to initialize the grid
         for (i = 0; i < GRID_ROWS; i = i + 1) begin
             for (j = 0; j < GRID_COLS; j = j + 1) begin
-                grid_ram[i][j] <= 0; // Initialize all cells to black
+                grid_ram[i][j] <= (i+j)%2; // Initialize to chessboard background
             end
         end
     end else begin
         // Normal operation
-        for (i = 0; i < GRID_ROWS; i = i + 1) begin
-            for (j = 0; j < GRID_COLS; j = j + 1) begin
-                grid_ram[i][j] <= (i+j)%2; // Initialize all cells
-            end
-        end
     end
 end
 
