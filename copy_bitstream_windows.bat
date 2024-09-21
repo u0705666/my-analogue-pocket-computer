@@ -1,0 +1,1 @@
+cp 'D:\projects\openfpga\my-analogue-pocket-computer\src\fpga\output_files\bitstream.rbf_r' 'E:\Cores\ngy.NgyCore\'
