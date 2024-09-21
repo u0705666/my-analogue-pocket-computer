@@ -293,12 +293,12 @@ assign dram_ras_n = 'h1;
 assign dram_cas_n = 'h1;
 assign dram_we_n = 'h1;
 
-assign sram_a = 'h0;
-assign sram_dq = {16{1'bZ}};
-assign sram_oe_n  = 1;
-assign sram_we_n  = 1;
-assign sram_ub_n  = 1;
-assign sram_lb_n  = 1;
+// assign sram_a = 'h0;
+// assign sram_dq = {16{1'bZ}};
+// assign sram_oe_n  = 1;
+// assign sram_we_n  = 1;
+// assign sram_ub_n  = 1;
+// assign sram_lb_n  = 1;
 
 assign dbg_tx = 1'bZ;
 assign user1 = 1'bZ;
@@ -610,7 +610,7 @@ assign video_hs = vidout_hs;
 	localparam GRID_ROWS = 30;     // Number of rows
 	
 	// Dual-port RAM for grid
-	reg [0:0] grid_ram [0:GRID_ROWS-1][0:GRID_COLS-1];
+	// reg [0:0] grid_ram [0:GRID_ROWS-1][0:GRID_COLS-1];
 	reg [5:0] cell_col;
 	reg [4:0] cell_row;
 	reg cell_state;
@@ -627,9 +627,9 @@ assign video_hs = vidout_hs;
 	*/
 
 	// Read port (video_rgb_clock domain)
-	always @(posedge video_rgb_clock) begin
-		 cell_state <= grid_ram[cell_row][cell_col];
-	end
+	// always @(posedge video_rgb_clock) begin
+	// 	 cell_state <= grid_ram[cell_row][cell_col];
+	// end
 	
 	reg	[15:0]	frame_count;
 	
@@ -652,23 +652,105 @@ assign video_hs = vidout_hs;
 	reg	[9:0]	square_y = INIT_Y;
 	
 
-	integer i, j;
+	// integer i, j;
+
+// always @(posedge clk_74a or negedge reset_n) begin
+//     if (!reset_n) begin
+//         // Reset logic to initialize the grid
+//         for (i = 0; i < GRID_ROWS; i = i + 1) begin
+//             for (j = 0; j < GRID_COLS; j = j + 1) begin
+//                 grid_ram[i][j] <= 0; // Initialize all cells to black
+//             end
+//         end
+//     end else begin
+//         // Normal operation
+//         for (i = 0; i < GRID_ROWS; i = i + 1) begin
+//             for (j = 0; j < GRID_COLS; j = j + 1) begin
+//                 grid_ram[i][j] <= (i+j)%2; // Initialize all cells
+//             end
+//         end
+//     end
+// end
+
+
+reg [16:0] sram_a_A;
+reg [15:0] sram_dq_in_A;
+wire [15:0] sram_dq_out_A;
+reg sram_re_A;
+reg sram_we_A;
+
+reg [16:0] sram_a_B;
+reg [15:0] sram_dq_in_B;
+wire [15:0] sram_dq_out_B;
+reg sram_re_B;
+reg sram_we_B;
+
+dual_port_sram dp_sram1(
+	.clk(clk_74a),
+	.sram_a_A(sram_a_A),
+	.sram_dq_in_A(sram_dq_in_A),
+	.sram_dq_out_A(sram_dq_out_A),
+	.sram_re_A(sram_re_A),
+	.sram_we_A(sram_we_A),
+	.sram_a_B(sram_a_B),
+	.sram_dq_in_B(sram_dq_in_B),
+	.sram_dq_out_B(sram_dq_out_B),
+	.sram_re_B(sram_re_B),
+	.sram_we_B(sram_we_B),
+	.sram_a(sram_a),
+	.sram_dq(sram_dq),
+	.sram_oe_n(sram_oe_n),
+	.sram_we_n(sram_we_n),
+	.sram_ub_n(sram_ub_n),
+	.sram_lb_n(sram_lb_n),
+);
+
+reg [3:0] state;
+integer i, j;
 
 always @(posedge clk_74a or negedge reset_n) begin
     if (!reset_n) begin
-        // Reset logic to initialize the grid
-        for (i = 0; i < GRID_ROWS; i = i + 1) begin
-            for (j = 0; j < GRID_COLS; j = j + 1) begin
-                grid_ram[i][j] <= 0; // Initialize all cells to black
-            end
-        end
+        // Reset logic to initialize the grid in SRAM
+        state <= 0;
+        i <= 0;
+        j <= 0;
     end else begin
-        // Normal operation
-        for (i = 0; i < GRID_ROWS; i = i + 1) begin
-            for (j = 0; j < GRID_COLS; j = j + 1) begin
-                grid_ram[i][j] <= (i+j)%2; // Initialize all cells
+        case (state)
+            0: begin
+                if (i < GRID_ROWS) begin
+                    if (j < GRID_COLS) begin
+                        // Calculate address
+                        sram_a_A <= i * GRID_COLS + j;
+                        sram_dq_in_A <= 16'b0;  // Initialize all cells to black
+                        sram_we_A <= 1;          // Assert write enable
+						sram_re_A <= 0;
+                        j <= j + 1;
+                    end else begin
+                        j <= 0;
+                        i <= i + 1;
+                    end
+                end else begin
+                    state <= 1; // Go to normal operation state
+                end
             end
-        end
+
+            1: begin
+                // Normal operation
+                // Read/Write logic as needed
+                // For example, modify the grid dynamically in SRAM
+				if (cont1_key[6]) begin
+					sram_a_A <= 10;
+					sram_dq_in_A <= 16'hffff;
+					sram_we_A <= 1;
+					sram_re_A <= 0;
+				end else begin
+					sram_a_A <= 10;
+					sram_dq_in_A <= 0;
+					sram_we_A <= 1;
+					sram_re_A <= 0;
+				end
+            end
+        endcase
     end
 end
 
@@ -781,8 +863,13 @@ always @(posedge video_rgb_clock or negedge reset_n) begin
 						cell_row = visible_y / CELL_HEIGHT;
 
 						// Access cell state from grid_ram
-						cell_state = grid_ram[cell_row][cell_col];
+						//cell_state = grid_ram[cell_row][cell_col];
 
+						//use sram instead of grid_ram
+						sram_a_B <= cell_row * GRID_COLS + cell_col;
+						sram_we_B <= 0;
+						sram_re_B <= 1;
+						cell_state = sram_dq_out_B[0];
 						// Calculate position within the cell
 						cell_pixel_x = visible_x % CELL_WIDTH;
 						cell_pixel_y = visible_y % CELL_HEIGHT;
