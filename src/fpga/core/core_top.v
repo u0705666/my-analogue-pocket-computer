@@ -664,14 +664,41 @@ video_driver #(
 vd1(
 	.clk(clk_74a),
 	.reset_n(reset_n),
-	.grid_ram(grid_ram_wire)
+	.grid_ram(grid_ram_wire),
+	.a(a),
+	.b(b),
+	.result(result),
+	.zero(zero)
 );
 
 always @(posedge clk_74a) begin
 	grid_ram <= grid_ram_wire;
 end
 
+/*************************************
+Test Riscv related circuits here
+*************************************/
+wire [31:0] a, b;
+wire [3:0] control;
+wire [31:0] result;
+wire zero;
 
+Alu32 alu(
+	.a(a),
+	.b(b),
+	.control(control),
+	.out(result),
+	.zero(zero)
+);
+
+assign a = 32'b01010100000000000000000000001000;
+assign b = 32'b00000000000000000000000000000001;
+assign control = 2;
+
+
+/***************************
+end of riscv test
+****************************/
 
 always @(posedge video_rgb_clock or negedge reset_n) begin
 

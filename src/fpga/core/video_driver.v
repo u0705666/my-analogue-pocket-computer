@@ -7,6 +7,10 @@ module video_driver #(
 )(
     input wire clk,
     input wire reset_n,
+    input wire [31:0] a,
+    input wire [31:0] b,
+    input wire [31:0] result,
+    input wire zero,
     output reg [RAM_LENGTH-1:0] grid_ram
 );
 
@@ -23,6 +27,10 @@ always @(posedge clk or negedge reset_n) begin
         end
     end else begin
         // Normal operation
+        grid_ram[31:0] <= a;
+        grid_ram[71:40] <= b;
+        grid_ram[111:80] <= result;
+        grid_ram[120] <= zero;
     end
 end
 
