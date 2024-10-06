@@ -679,7 +679,7 @@ end
 Test Riscv related circuits here
 *************************************/
 wire [31:0] a, b;
-wire [3:0] control;
+reg [3:0] control;
 wire [31:0] result;
 wire zero;
 
@@ -693,7 +693,29 @@ Alu32 alu(
 
 assign a = 32'b01010100000000000000000000001000;
 assign b = 32'b00000000000000000000000000000001;
-assign control = 2;
+
+wire [3:0] cont1_key_abxy;
+
+assign cont1_key_abxy = cont1_key[7:4];
+
+always @(*) begin
+	case (cont1_key_abxy)
+		4'b0001: begin
+			control = 0;
+		end
+		4'b0010: begin
+			control = 1;
+		end
+		4'b0100: begin
+			control = 2;
+		end
+		4'b1000: begin
+			control = 6;
+		end
+		default: control = 2;
+	endcase
+end
+
 
 
 /***************************
