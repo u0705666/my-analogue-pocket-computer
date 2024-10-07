@@ -1,5 +1,5 @@
 apf/common.v
-core/display.v
-core/display_tb.v
-core/video_driver.v
-
+core/ngycore/ngy_computer_top.v
+core/riscv/Alu.v
+core/riscv/Alu32.v
+core/riscv/full_adder.v
