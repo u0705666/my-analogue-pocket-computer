@@ -654,8 +654,8 @@ assign video_hs = vidout_hs;
 //     end
 // end
 
-wire [TOTAL_CELLS-1:0] grid_ram_wire;
-reg [TOTAL_CELLS-1:0] grid_ram;
+wire [0:TOTAL_CELLS-1] grid_ram_wire;
+reg [0:TOTAL_CELLS-1] grid_ram;
 
 video_driver #(
 	.RAM_LENGTH(GRID_ROWS*GRID_COLS), 
