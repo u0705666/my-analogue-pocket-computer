@@ -804,24 +804,24 @@ always @(posedge video_rgb_clock or negedge reset_n) begin
 				end
 				
 				// generate square
-				if(visible_x >= square_x && visible_x < square_x+50) begin
-					if(visible_y >= square_y && visible_y < square_y+50) begin
-						vidout_rgb <= 24'h0; 
-					end
-				end
-				if(visible_x >= square_x+1 && visible_x < square_x+50-1) begin
-					if(visible_y >= square_y+1 && visible_y < square_y+50-1) begin
-						// change color of the square based on button state.
-						// note: because the button state could change in the middle of the frame,
-						// tearing on the square color could occur, but this is normal.
-						if(cont1_key[4])	
-							vidout_rgb <= 24'hFF00FF; 
-						else if(cont1_key[5])	
-							vidout_rgb <= 24'h00FF00; 
-						else 
-							vidout_rgb <= 24'hFFFFFF; 
-					end
-				end
+				// if(visible_x >= square_x && visible_x < square_x+50) begin
+				// 	if(visible_y >= square_y && visible_y < square_y+50) begin
+				// 		vidout_rgb <= 24'h0; 
+				// 	end
+				// end
+				// if(visible_x >= square_x+1 && visible_x < square_x+50-1) begin
+				// 	if(visible_y >= square_y+1 && visible_y < square_y+50-1) begin
+				// 		// change color of the square based on button state.
+				// 		// note: because the button state could change in the middle of the frame,
+				// 		// tearing on the square color could occur, but this is normal.
+				// 		if(cont1_key[4])	
+				// 			vidout_rgb <= 24'hFF00FF; 
+				// 		else if(cont1_key[5])	
+				// 			vidout_rgb <= 24'h00FF00; 
+				// 		else 
+				// 			vidout_rgb <= 24'hFFFFFF; 
+				// 	end
+				// end
 				
 				// generate background
 				if(visible_x < square_x+1 || visible_x >= square_x+50-1 || visible_y < square_y+1 || visible_y >= square_y+50-1) begin
@@ -905,42 +905,6 @@ always @(posedge video_rgb_clock or negedge reset_n) begin
 		end
 	end
 end
-
-
-/*
-
-always @(posedge video_rgb_clock or negedge reset_n) begin
-    if (~reset_n) begin
-        // Reset logic
-    end else begin
-        // Existing timing logic...
-
-        if (vidout_de) begin
-            // Calculate cell indices
-            cell_col = visible_x / CELL_WIDTH;
-            cell_row = visible_y / CELL_HEIGHT;
-
-            // Access cell state from grid_ram
-            cell_state = grid_ram[cell_row][cell_col];
-
-            // Calculate position within the cell
-            cell_pixel_x = visible_x % CELL_WIDTH;
-            cell_pixel_y = visible_y % CELL_HEIGHT;
-
-            // Optional: Add borders
-            if (cell_pixel_x == 0 || cell_pixel_y == 0) begin
-                vidout_rgb <= 24'h888888; // Gray borders
-            end else begin
-                // Set color based on cell state
-                vidout_rgb <= (cell_state == 1'b1) ? 24'hFFFFFF : 24'h000000;
-            end
-        end else begin
-            vidout_rgb <= 24'h000000; // Outside visible area
-        end
-    end
-end
-*/
-
 
 //
 // audio i2s silence generator
