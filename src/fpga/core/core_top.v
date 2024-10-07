@@ -657,70 +657,34 @@ assign video_hs = vidout_hs;
 wire [0:TOTAL_CELLS-1] grid_ram_wire;
 reg [0:TOTAL_CELLS-1] grid_ram;
 
-video_driver #(
-	.RAM_LENGTH(GRID_ROWS*GRID_COLS), 
-	.GRID_COLS(GRID_COLS), 
-	.GRID_ROWS(GRID_ROWS)) 
-vd1(
-	.clk(clk_74a),
+// video_driver #(
+// 	.RAM_LENGTH(GRID_ROWS*GRID_COLS), 
+// 	.GRID_COLS(GRID_COLS), 
+// 	.GRID_ROWS(GRID_ROWS)) 
+// vd1(
+// 	.clk(clk_74a),
+// 	.reset_n(reset_n),
+// 	.grid_ram(grid_ram_wire),
+// 	.a(a),
+// 	.b(b),
+// 	.result(result),
+// 	.zero(zero)
+// );
+
+ngy_computer_top #(
+.RAM_LENGTH(GRID_ROWS*GRID_COLS), 
+.GRID_COLS(GRID_COLS), 
+.GRID_ROWS(GRID_ROWS)) 
+nct1(
+	.clk_74a(clk_74a),
 	.reset_n(reset_n),
+	.cont1_key(cont1_key),
 	.grid_ram(grid_ram_wire),
-	.a(a),
-	.b(b),
-	.result(result),
-	.zero(zero)
 );
 
 always @(posedge clk_74a) begin
 	grid_ram <= grid_ram_wire;
 end
-
-/*************************************
-Test Riscv related circuits here
-*************************************/
-wire [31:0] a, b;
-reg [3:0] control;
-wire [31:0] result;
-wire zero;
-
-Alu32 alu(
-	.a(a),
-	.b(b),
-	.control(control),
-	.out(result),
-	.zero(zero)
-);
-
-assign a = 32'b01010100000000000000000000001000;
-assign b = 32'b00000000000000000000000000000001;
-
-wire [3:0] cont1_key_abxy;
-
-assign cont1_key_abxy = cont1_key[7:4];
-
-always @(*) begin
-	case (cont1_key_abxy)
-		4'b0001: begin
-			control = 0;
-		end
-		4'b0010: begin
-			control = 1;
-		end
-		4'b0100: begin
-			control = 2;
-		end
-		4'b1000: begin
-			control = 6;
-		end
-		default: control = 2;
-	endcase
-end
-
-
-
-/***************************
-end of riscv test
-****************************/
 
 always @(posedge video_rgb_clock or negedge reset_n) begin
 
