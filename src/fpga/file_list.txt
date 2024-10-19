@@ -3,3 +3,5 @@ core/ngycore/ngy_computer_top.v
 core/riscv/Alu.v
 core/riscv/Alu32.v
 core/riscv/full_adder.v
+core/riscv/instruction_memory.v
+core/riscv/instruction_memory_tb.v
