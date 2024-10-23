@@ -4,7 +4,7 @@ module instruction_memory_tb;
 
     // Parameters
     parameter DATA_WIDTH = 32;
-    parameter ADDR_WIDTH = 2;
+    parameter ADDR_WIDTH = 4;
     
     // Testbench signals
     reg [ADDR_WIDTH-1:0] address;
@@ -26,16 +26,24 @@ module instruction_memory_tb;
         
         // Wait for some time and check different addresses
         #10;
-        address = 1; // Should fetch the instruction at address 1
+        // Check instruction at address 0 is "04030201"
+        assert(instruction == 32'h04030201) else $fatal(1, "instruction at address 0 is not 04030201");
+
+        address = 4; // Should fetch the instruction at address 4
         
         #10;
-        address = 2; // Should fetch the instruction at address 2
+        assert(instruction == 32'h08070605) else $fatal(1, "instruction at address 4 is not 08070605");
+
+        address = 8; // Should fetch the instruction at address 8
         
         #10;
-        address = 3; // Should fetch the instruction at address 3
+        assert(instruction == 32'h0c0b0a09) else $fatal(1, "instruction at address 8 is not 0c0b0a09");
+
+        address = 12; // Should fetch the instruction at address 12
         
         // Add more address tests if needed
         #10;
+        assert(instruction == 32'h100f0e0d) else $fatal(1, "instruction at address 12 is not 100f0e0d");
         
         // End simulation after a short delay
         $finish;

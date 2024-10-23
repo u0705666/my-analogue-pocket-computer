@@ -7,7 +7,7 @@ module instruction_memory #(
 );
     
     // Declare memory array
-    reg [DATA_WIDTH-1:0] memory_array [0:(1<<ADDR_WIDTH)-1];
+    reg [7:0] memory_array [0:(1<<ADDR_WIDTH)-1];
     
     // Initialize the memory array from a file
     initial begin
@@ -17,7 +17,7 @@ module instruction_memory #(
     
     // Output the instruction at the specified address
     always @(*) begin
-        instruction = memory_array[address];
+        instruction = {memory_array[address+3], memory_array[address+2], memory_array[address+1], memory_array[address]};
     end
 
 endmodule
