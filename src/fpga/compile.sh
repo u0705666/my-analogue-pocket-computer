@@ -1,1 +1,2 @@
-iverilog -g2012 -o icarus_output/dsn -c file_list.txt
+iverilog -g2012 -o icarus_output/dsn -c file_list.txt -I core/riscv
+

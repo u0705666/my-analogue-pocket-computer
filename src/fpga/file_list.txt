@@ -1,4 +1,5 @@
 apf/common.v
+core/riscv/riscv_configs.v
 core/ngycore/ngy_computer_top.v
 core/riscv/Alu.v
 core/riscv/Alu32.v
