@@ -8,3 +8,4 @@ core/riscv/instruction_memory_tb.v
 core/riscv/register_file.v
 core/riscv/riscv_cpu.v
 core/riscv/data_memory.v
+core/riscv/immediate_generator.v
