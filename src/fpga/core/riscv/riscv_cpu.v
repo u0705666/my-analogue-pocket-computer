@@ -14,5 +14,27 @@ module riscv_cpu(
 
     assign pc_next = pc + 4;
 
+    // Register file instance
+    wire [31:0] rd1;
+    wire [31:0] rd2;
+    wire [4:0] rs1;
+    wire [4:0] rs2;
+    wire [4:0] writeReg;
+    wire [31:0] writeData;
+    wire regWrite;
+
+    register_file reg_file (
+        .clk(clk),
+        .reset_n(reset_n),
+        .rs1(rs1),
+        .rs2(rs2),
+        .writeReg(writeReg),
+        .writeData(writeData),
+        .regWrite(regWrite),
+        .rd1(rd1),
+        .rd2(rd2)
+    );
+
+
 
 endmodule
