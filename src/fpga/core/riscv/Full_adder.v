@@ -1,3 +1,5 @@
+`default_nettype none
+
 module Full_adder(
     input a,
     input b,

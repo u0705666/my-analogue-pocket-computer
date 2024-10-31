@@ -1,3 +1,5 @@
+`default_nettype none
+
 module data_memory(
     input clk,
     input [31:0] address,
