@@ -14,8 +14,14 @@ module riscv_cpu(
 );
     reg [31:0] pc;
     wire [31:0] pc_next;
+    wire [31:0] pc_with_immediate;
 
     assign pc_next = pc + 4;
+    assign pc_with_immediate = pc + immediate;
+
+    wire PCSrc;
+    assign pc = PCSrc ? pc_with_immediate : pc_next;
+
 
     // Register file instance
     wire [31:0] rd1;
@@ -45,6 +51,11 @@ module riscv_cpu(
     //bind these to the register file later
     wire [31:0] alu_a;
     wire [31:0] alu_b;
+
+    assign alu_a = rd1;
+    wire ALUSrc;
+    assign alu_b = ALUSrc ? immediate : rd2;
+
 
     Alu32 alu (
         .control(alu_control),
@@ -82,7 +93,16 @@ module riscv_cpu(
         endcase
     end
     
+    wire [31:0] immediate;
 
+    immediate_generator imm_gen (
+        .instruction(instruction_memory_instruction),
+        .immediate(immediate)
+    );
 
+    assign data_memory_write_data = rd2;
+
+    wire MemtoReg;
+    assign writeData = MemtoReg ? data_memory_read_data : alu_result;
 
 endmodule
