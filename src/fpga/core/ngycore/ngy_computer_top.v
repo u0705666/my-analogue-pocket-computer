@@ -59,6 +59,50 @@ end of riscv test
 ****************************/
 
 
+//**************************************************
+// riscv cpu
+//**************************************************
+
+wire [31:0] instruction_memory_instruction;
+wire [31:0] instruction_memory_address;
+wire [31:0] data_memory_address;
+wire [31:0] data_memory_write_data;
+wire data_memory_mem_write;
+wire data_memory_mem_read;
+wire [31:0] data_memory_read_data;
+
+riscv_cpu cpu1(
+	.clk(clk_74a),
+	.reset_n(reset_n),
+	.instruction_memory_address(instruction_memory_address),
+	.instruction_memory_instruction(instruction_memory_instruction),
+	.data_memory_address(data_memory_address),
+	.data_memory_write_data(data_memory_write_data),
+	.data_memory_mem_write(data_memory_mem_write),
+	.data_memory_mem_read(data_memory_mem_read),
+	.data_memory_read_data(data_memory_read_data)
+);
+
+instruction_memory #(
+	.DATA_WIDTH(32),
+	.ADDR_WIDTH(10)
+) im1 (
+	.address(instruction_memory_address[9:0]),
+	.instruction(instruction_memory_instruction)
+);
+
+data_memory dm1(
+	.address(data_memory_address),
+	.write_data(data_memory_write_data),
+	.mem_write(data_memory_mem_write),
+	.mem_read(data_memory_mem_read),
+	.read_data(data_memory_read_data)
+);
+
+//**************************************************
+// end of riscv cpu
+//**************************************************
+
 	integer i, j;
 
 always @(posedge clk_74a or negedge reset_n) begin
