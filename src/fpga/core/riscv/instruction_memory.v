@@ -12,6 +12,7 @@ module instruction_memory #(
     // Initialize the memory array from a file
     initial begin
         $readmemh("/Users/niuguangyuan/Projects/openfpga/intel-quartus-drivec/myprojects/my-analogue-pocket-computer/src/fpga/core/riscv/instructions.mem", memory_array);  // Read hex data from file
+        //$readmemh("c:/myprojects/my-analogue-pocket-computer/src/fpga/core/riscv/instructions.mem", memory_array);  // Read hex data from file
         // Or use $readmemb for binary file: $readmemb("instructions.mem", memory_array);
     end
     

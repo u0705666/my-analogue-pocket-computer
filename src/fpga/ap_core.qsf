@@ -738,6 +738,12 @@ set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
 # end ENTITY(mf_pllbase_0002)
 # ---------------------------
 set_global_assignment -name SEED 2
+set_global_assignment -name VERILOG_FILE core/riscv/riscv_cpu.v
+set_global_assignment -name VERILOG_FILE core/riscv/riscv_configs.v
+set_global_assignment -name VERILOG_FILE core/riscv/register_file.v
+set_global_assignment -name VERILOG_FILE core/riscv/instruction_memory.v
+set_global_assignment -name VERILOG_FILE core/riscv/immediate_generator.v
+set_global_assignment -name VERILOG_FILE core/riscv/data_memory.v
 set_global_assignment -name VERILOG_FILE core/ngycore/ngy_computer_top.v
 set_global_assignment -name VERILOG_FILE core/riscv/Full_adder.v
 set_global_assignment -name VERILOG_FILE core/riscv/Alu32.v

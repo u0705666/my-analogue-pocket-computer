@@ -12,7 +12,7 @@ module riscv_cpu(
     output data_memory_mem_read,
     input [31:0] data_memory_read_data
 );
-    reg [31:0] pc;
+    wire [31:0] pc;
     wire [31:0] pc_next;
     wire [31:0] pc_with_immediate;
 
