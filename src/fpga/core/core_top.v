@@ -671,16 +671,28 @@ reg [0:TOTAL_CELLS-1] grid_ram;
 // 	.zero(zero)
 // );
 
-ngy_computer_top #(
-.RAM_LENGTH(GRID_ROWS*GRID_COLS), 
-.GRID_COLS(GRID_COLS), 
-.GRID_ROWS(GRID_ROWS)) 
-nct1(
+// ngy_computer_top #(
+// .RAM_LENGTH(GRID_ROWS*GRID_COLS), 
+// .GRID_COLS(GRID_COLS), 
+// .GRID_ROWS(GRID_ROWS)) 
+// nct1(
+// 	.clk_74a(clk_74a),
+// 	.reset_n(reset_n),
+// 	.cont1_key(cont1_key),
+// 	.grid_ram(grid_ram_wire),
+// );
+
+ngy_snake_top #(
+.RAM_LENGTH(GRID_ROWS*GRID_COLS),
+.GRID_COLS(GRID_COLS),
+.GRID_ROWS(GRID_ROWS))
+nst1(
 	.clk_74a(clk_74a),
 	.reset_n(reset_n),
 	.cont1_key(cont1_key),
 	.grid_ram(grid_ram_wire),
 );
+
 
 always @(posedge clk_74a) begin
 	grid_ram <= grid_ram_wire;
