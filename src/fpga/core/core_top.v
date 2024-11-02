@@ -539,31 +539,31 @@ end
 //
 	wire	[2:0]	video_channel_enable_s;
 	wire			video_anim_enable_s;
-	wire			video_resetsquare_s;
-	reg				video_resetsquare_last;
+	// wire			video_resetsquare_s;
+	// reg				video_resetsquare_last;
 	wire			video_resetframe_s;
 	reg				video_resetframe_last;
 	wire			video_incrframe_s;
 	reg				video_incrframe_last;
-	wire			video_squareposx_s;
-	reg				video_squareposx_last;
-	wire			video_squareposy_s;
-	reg				video_squareposy_last;
-	wire	[9:0]	video_square_newx_s;
-	wire	[9:0]	video_square_newy_s;
-	reg				video_squareposx_nextcycle;
-	reg				video_squareposy_nextcycle;
+	// wire			video_squareposx_s;
+	// reg				video_squareposx_last;
+	// wire			video_squareposy_s;
+	// reg				video_squareposy_last;
+	// wire	[9:0]	video_square_newx_s;
+	// wire	[9:0]	video_square_newy_s;
+	// reg				video_squareposx_nextcycle;
+	// reg				video_squareposy_nextcycle;
 	
 synch_3 #(.WIDTH(3)) s1(video_channel_enable, video_channel_enable_s, video_rgb_clock);
 synch_3 			 s2(video_anim_enable, video_anim_enable_s, video_rgb_clock);
-synch_3 			 s3(video_resetsquare, video_resetsquare_s, video_rgb_clock);
+// synch_3 			 s3(video_resetsquare, video_resetsquare_s, video_rgb_clock);
 synch_3 			 s4(video_resetframe, video_resetframe_s, video_rgb_clock);
 synch_3 			 s5(video_incrframe, video_incrframe_s, video_rgb_clock);
 
-synch_3 			 s6(video_squareposx, video_squareposx_s, video_rgb_clock);
-synch_3 			 s7(video_squareposy, video_squareposy_s, video_rgb_clock);
-synch_3 #(.WIDTH(10)) s8(video_square_newx, video_square_newx_s, video_rgb_clock);
-synch_3 #(.WIDTH(10)) s9(video_square_newy, video_square_newy_s, video_rgb_clock);
+// synch_3 			 s6(video_squareposx, video_squareposx_s, video_rgb_clock);
+// synch_3 			 s7(video_squareposy, video_squareposy_s, video_rgb_clock);
+// synch_3 #(.WIDTH(10)) s8(video_square_newx, video_square_newx_s, video_rgb_clock);
+// synch_3 #(.WIDTH(10)) s9(video_square_newy, video_square_newy_s, video_rgb_clock);
 
 
 
@@ -714,11 +714,11 @@ always @(posedge video_rgb_clock or negedge reset_n) begin
 		vidout_hs_1 <= vidout_hs;
 		vidout_de_1 <= vidout_de;
 		
-		video_resetsquare_last <= video_resetsquare_s;
+		// video_resetsquare_last <= video_resetsquare_s;
 		video_resetframe_last <= video_resetframe_s;
 		video_incrframe_last <= video_incrframe_s;
-		video_squareposx_last <= video_squareposx_s;
-		video_squareposy_last <= video_squareposy_s;
+		// video_squareposx_last <= video_squareposx_s;
+		// video_squareposy_last <= video_squareposy_s;
 		
 		// x and y counters
 		x_count <= x_count + 1'b1;
@@ -799,55 +799,52 @@ always @(posedge video_rgb_clock or negedge reset_n) begin
 				// 	end
 				// end
 				
-				// generate background
-				if(visible_x < square_x+1 || visible_x >= square_x+50-1 || visible_y < square_y+1 || visible_y >= square_y+50-1) begin
-						// Calculate cell indices
-						cell_col = visible_x / CELL_WIDTH;
-						cell_row = visible_y / CELL_HEIGHT;
+				// Calculate cell indices
+				cell_col = visible_x / CELL_WIDTH;
+				cell_row = visible_y / CELL_HEIGHT;
 
-						// Access cell state from grid_ram
-						if (cell_col < GRID_COLS && cell_row < GRID_ROWS) begin
-							cell_state = grid_ram[cell_row * GRID_COLS + cell_col];
-						end else begin
-							cell_state = 1'b0;
-						end
-
-						// Calculate position within the cell
-						cell_pixel_x = visible_x % CELL_WIDTH;
-						cell_pixel_y = visible_y % CELL_HEIGHT;
-						vidout_rgb <= (cell_state == 1'b1) ? 24'hFFFFFF : 24'h000000;
+				// Access cell state from grid_ram
+				if (cell_col < GRID_COLS && cell_row < GRID_ROWS) begin
+					cell_state = grid_ram[cell_row * GRID_COLS + cell_col];
+				end else begin
+					cell_state = 1'b0;
 				end
+
+				// Calculate position within the cell
+				cell_pixel_x = visible_x % CELL_WIDTH;
+				cell_pixel_y = visible_y % CELL_HEIGHT;
+				vidout_rgb <= (cell_state == 1'b1) ? 24'hFFFFFF : 24'h000000;
 				
 			end 
 		end
 		
-		if(vidout_vs) begin
-			// vertical sync, new frame pulse (actually occurred on the previous cycle)
-			// this will actually cause tearing but only on the upperleft-most pixel
+		// if(vidout_vs) begin
+		// 	// vertical sync, new frame pulse (actually occurred on the previous cycle)
+		// 	// this will actually cause tearing but only on the upperleft-most pixel
 			
-			if(cont1_key[0]) begin
-				// d-pad up
-				if(square_y > 0) square_y <= square_y - 'd1;
-			end
-			if(cont1_key[1]) begin
-				// d-pad down
-				if(square_y < VID_V_ACTIVE-50) square_y <= square_y + 'd1;
-			end
-			if(cont1_key[2]) begin
-				// d-pad left
-				if(square_x > 0) square_x <= square_x - 'd1;
-			end
-			if(cont1_key[3]) begin
-				// d-pad right
-				if(square_x < VID_H_ACTIVE-50) square_x <= square_x + 'd1;
-			end
-		end
+		// 	if(cont1_key[0]) begin
+		// 		// d-pad up
+		// 		if(square_y > 0) square_y <= square_y - 'd1;
+		// 	end
+		// 	if(cont1_key[1]) begin
+		// 		// d-pad down
+		// 		if(square_y < VID_V_ACTIVE-50) square_y <= square_y + 'd1;
+		// 	end
+		// 	if(cont1_key[2]) begin
+		// 		// d-pad left
+		// 		if(square_x > 0) square_x <= square_x - 'd1;
+		// 	end
+		// 	if(cont1_key[3]) begin
+		// 		// d-pad right
+		// 		if(square_x < VID_H_ACTIVE-50) square_x <= square_x + 'd1;
+		// 	end
+		// end
 		
-		// detect any edge coming from the synchronized square reset signal
-		if(video_resetsquare_last != video_resetsquare_s) begin
-			square_x <= INIT_X;
-			square_y <= INIT_Y;
-		end
+		// // detect any edge coming from the synchronized square reset signal
+		// if(video_resetsquare_last != video_resetsquare_s) begin
+		// 	square_x <= INIT_X;
+		// 	square_y <= INIT_Y;
+		// end
 		
 		// detect any edge coming from the synchronized frame reset signal
 		if(video_resetframe_last != video_resetframe_s) begin
@@ -859,26 +856,26 @@ always @(posedge video_rgb_clock or negedge reset_n) begin
 			frame_count <= frame_count + 1'b1;
 		end
 		
-		// detect any edge coming from the synchronized frame reset signal
-		// then generate a delay signal
-		if(video_squareposx_last != video_squareposx_s) begin
-			video_squareposx_nextcycle <= 1;
-		end else begin
-			video_squareposx_nextcycle <= 0;
-		end
-		if(video_squareposy_last != video_squareposy_s) begin
-			video_squareposy_nextcycle <= 1;
-		end else begin
-			video_squareposy_nextcycle <= 0;
-		end
-		// load the new square coordinates, but 1 cycle delayed so the 10-bit wide data
-		// has settled
-		if(video_squareposx_nextcycle) begin
-			square_x <= video_square_newx_s;
-		end
-		if(video_squareposy_nextcycle) begin
-			square_y <= video_square_newy_s;
-		end
+		// // detect any edge coming from the synchronized frame reset signal
+		// // then generate a delay signal
+		// if(video_squareposx_last != video_squareposx_s) begin
+		// 	video_squareposx_nextcycle <= 1;
+		// end else begin
+		// 	video_squareposx_nextcycle <= 0;
+		// end
+		// if(video_squareposy_last != video_squareposy_s) begin
+		// 	video_squareposy_nextcycle <= 1;
+		// end else begin
+		// 	video_squareposy_nextcycle <= 0;
+		// end
+		// // load the new square coordinates, but 1 cycle delayed so the 10-bit wide data
+		// // has settled
+		// if(video_squareposx_nextcycle) begin
+		// 	square_x <= video_square_newx_s;
+		// end
+		// if(video_squareposy_nextcycle) begin
+		// 	square_y <= video_square_newy_s;
+		// end
 	end
 end
 

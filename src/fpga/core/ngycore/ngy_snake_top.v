@@ -17,7 +17,7 @@ module ngy_snake_top #(
     wire dpad_right = cont1_key[3];
 
     //generate a 10hz clock from the 74mhz clock
-    input wire clk_10hz;
+    wire clk_10hz;
 
     clock_divider #(
         .DIVIDER(74000000/10)) 
@@ -66,7 +66,7 @@ module ngy_snake_top #(
             else if (dpad_right && snake_dir != 2'b10) snake_dir <= 2'b00;
 
             // Move snake body
-            for (i = snake_length-1; i > 0; i = i - 1) begin
+            for (i = SNAKE_MAX_LENGTH-1; i > 0; i = i - 1) begin
                 snake_x[i] <= snake_x[i-1];
                 snake_y[i] <= snake_y[i-1];
             end
@@ -92,7 +92,9 @@ module ngy_snake_top #(
         end
         // Draw snake
         for (i = 0; i < snake_length; i = i + 1) begin
-            grid_ram[snake_y[i] * GRID_COLS + snake_x[i]] <= 1;
+            if (i < SNAKE_MAX_LENGTH) begin
+                grid_ram[snake_y[i] * GRID_COLS + snake_x[i]] <= 1;
+            end
         end
     end
 endmodule
