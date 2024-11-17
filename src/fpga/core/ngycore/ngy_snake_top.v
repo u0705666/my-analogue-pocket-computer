@@ -37,6 +37,8 @@ module ngy_snake_top #(
     reg [5:0] snake_x [0:SNAKE_MAX_LENGTH-1];
     reg [5:0] snake_y [0:SNAKE_MAX_LENGTH-1];
     reg [1:0] snake_dir = 2'b00; // 00: right, 01: down, 10: left, 11: up
+    reg [1:0] snake_next_dir = 2'b00; // new direction state register
+
 
     // Initial snake position
     initial begin
@@ -44,6 +46,18 @@ module ngy_snake_top #(
         for (i = 0; i < SNAKE_INIT_LENGTH; i = i + 1) begin
             snake_x[i] = 20 + i;
             snake_y[i] = 15;
+        end
+    end
+
+    // Update direction based on input
+    always @(posedge clk_74a or negedge reset_n) begin
+        if (!reset_n) begin
+            snake_next_dir <= 2'b00;
+        end else begin
+            if (dpad_up && snake_dir != 2'b01) snake_next_dir <= 2'b11;
+            else if (dpad_down && snake_dir != 2'b11) snake_next_dir <= 2'b01;
+            else if (dpad_left && snake_dir != 2'b00) snake_next_dir <= 2'b10;
+            else if (dpad_right && snake_dir != 2'b10) snake_next_dir <= 2'b00;
         end
     end
 
@@ -59,20 +73,16 @@ module ngy_snake_top #(
                 snake_y[i] <= 15;
             end
         end else begin
-            // Update direction based on input
-            if (dpad_up && snake_dir != 2'b01) snake_dir <= 2'b11;
-            else if (dpad_down && snake_dir != 2'b11) snake_dir <= 2'b01;
-            else if (dpad_left && snake_dir != 2'b00) snake_dir <= 2'b10;
-            else if (dpad_right && snake_dir != 2'b10) snake_dir <= 2'b00;
-
             // Move snake body
             for (i = SNAKE_MAX_LENGTH-1; i > 0; i = i - 1) begin
                 snake_x[i] <= snake_x[i-1];
                 snake_y[i] <= snake_y[i-1];
             end
 
+            snake_dir <= snake_next_dir;
+
             // Move snake head
-            case (snake_dir)
+            case (snake_next_dir)
                 2'b00: snake_x[0] <= snake_x[0] + 1; // right
                 2'b01: snake_y[0] <= snake_y[0] + 1; // down
                 2'b10: snake_x[0] <= snake_x[0] - 1; // left
