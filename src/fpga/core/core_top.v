@@ -655,114 +655,39 @@ nst1(
 	.grid_ram(grid_ram_wire),
 );
 
+wire pixel_state;
+
+pixel_driver pd1(
+	.visible_x(visible_x),
+	.visible_y(visible_y),
+	.grid_ram(grid_ram),
+	.pixel_state(pixel_state),
+	.clk_74a(clk_74a)
+);
+
+vga_controller vc1(
+	.video_rgb(video_rgb),
+	.video_rgb_clock(video_rgb_clock),
+	.video_rgb_clock_90(video_rgb_clock_90),
+	.video_de(video_de),
+	.video_skip(video_skip),
+	.video_vs(video_vs),
+	.video_hs(video_hs),
+	.frame_count(frame_count),
+	.visible_x(visible_x),
+	.visible_y(visible_y),
+	.pixel_state(pixel_state),
+	.clk_core_12288(clk_core_12288),
+	.clk_core_12288_90(clk_core_12288_90deg),
+	.reset_n(reset_n),
+	.video_resetframe_s(video_resetframe_s),
+	.video_incrframe_s(video_incrframe_s),
+	.video_channel_enable_s(video_channel_enable_s),
+	.video_anim_enable_s(video_anim_enable_s)
+);
 
 always @(posedge clk_74a) begin
 	grid_ram <= grid_ram_wire;
-end
-
-always @(posedge video_rgb_clock or negedge reset_n) begin
-
-	if(~reset_n) begin
-		x_count <= 0;
-		y_count <= 0;
-		
-	end else begin
-		
-		vidout_de <= 0;
-		vidout_skip <= 0;
-		vidout_vs <= 0;
-		vidout_hs <= 0;
-		
-		vidout_hs_1 <= vidout_hs;
-		vidout_de_1 <= vidout_de;
-		
-		video_resetframe_last <= video_resetframe_s;
-		video_incrframe_last <= video_incrframe_s;
-		
-		// x and y counters
-		x_count <= x_count + 1'b1;
-		if(x_count == VID_H_TOTAL-1) begin
-			x_count <= 0;
-			
-			y_count <= y_count + 1'b1;
-			if(y_count == VID_V_TOTAL-1) begin
-				y_count <= 0;
-			end
-		end
-		
-		// generate sync 
-		if(x_count == 0 && y_count == 0) begin
-			// sync signal in back porch
-			// new frame
-			vidout_vs <= 1;
-			
-			if(video_anim_enable_s) begin
-				frame_count <= frame_count + 1'b1;
-			end
-		end
-		
-		// we want HS to occur a bit after VS, not on the same cycle
-		if(x_count == 3) begin
-			// sync signal in back porch
-			// new line
-			vidout_hs <= 1;
-		end
-
-		// inactive screen areas are black
-		vidout_rgb <= 24'h0;
-		// generate active video
-		if(x_count >= VID_H_BPORCH && x_count < VID_H_ACTIVE+VID_H_BPORCH) begin
-
-			if(y_count >= VID_V_BPORCH && y_count < VID_V_ACTIVE+VID_V_BPORCH) begin
-				// data enable. this is the active region of the line
-				vidout_de <= 1;
-				
-				// blank out background channels if they are masked
-				if(~video_channel_enable_s[2]) vidout_rgb[23:16] <= 0;
-				if(~video_channel_enable_s[1]) vidout_rgb[15:8] <= 0;
-				if(~video_channel_enable_s[0]) vidout_rgb[7:0] <= 0;
-				
-				// add colored borders for debugging
-				if(visible_x == 0) begin
-					vidout_rgb <= 24'hFFFFFF;
-				end else if(visible_x == VID_H_ACTIVE-1) begin
-					vidout_rgb <= 24'h00FF00;
-				end else if(visible_y == 0) begin
-					vidout_rgb <= 24'hFF0000;
-				end else if(visible_y == VID_V_ACTIVE-1) begin
-					vidout_rgb <= 24'h0000FF;
-				end
-				
-				// Calculate cell indices
-				cell_col = visible_x / CELL_WIDTH;
-				cell_row = visible_y / CELL_HEIGHT;
-
-				// Access cell state from grid_ram
-				if (cell_col < GRID_COLS && cell_row < GRID_ROWS) begin
-					cell_state = grid_ram[cell_row * GRID_COLS + cell_col];
-				end else begin
-					cell_state = 1'b0;
-				end
-
-				// Calculate position within the cell
-				cell_pixel_x = visible_x % CELL_WIDTH;
-				cell_pixel_y = visible_y % CELL_HEIGHT;
-				vidout_rgb <= (cell_state == 1'b1) ? 24'hFFFFFF : 24'h000000;
-				
-			end 
-		end
-		
-		// detect any edge coming from the synchronized frame reset signal
-		if(video_resetframe_last != video_resetframe_s) begin
-			frame_count <= 0;
-		end
-		
-		// detect any edge coming from the synchronized frame reset signal
-		if(video_incrframe_last != video_incrframe_s) begin
-			frame_count <= frame_count + 1'b1;
-		end
-		
-	end
 end
 
 //
