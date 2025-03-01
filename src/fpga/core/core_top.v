@@ -311,8 +311,6 @@ assign vpll_feed = 1'bZ;
 	wire	[9:0]	square_x_s;
 	wire	[9:0]	square_y_s;
 	wire	[15:0]	frame_count_s;
-synch_3 #(.WIDTH(10)) s30(square_x, square_x_s, clk_74a);
-synch_3 #(.WIDTH(10)) s31(square_y, square_y_s, clk_74a);
 synch_3 #(.WIDTH(16)) s32(frame_count, frame_count_s, clk_74a);
 
 
@@ -557,6 +555,7 @@ end
 	localparam TOTAL_CELLS = GRID_ROWS * GRID_COLS;
 	
 	reg	[15:0]	frame_count;
+	wire [15:0] frame_count_wire;
 	
 	reg	[9:0]	x_count;
 	reg	[9:0]	y_count;
@@ -599,7 +598,7 @@ end
 		.video_skip(video_skip),
 		.video_vs(video_vs),
 		.video_hs(video_hs),
-		.frame_count(frame_count),
+		.frame_count(frame_count_wire),
 		.visible_x(visible_x),
 		.visible_y(visible_y),
 		.pixel_state(pixel_state),
@@ -614,6 +613,7 @@ end
 
 	always @(posedge clk_74a) begin
 		grid_ram <= grid_ram_wire;
+		frame_count <= frame_count_wire;
 	end
 
 //
