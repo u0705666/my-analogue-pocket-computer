@@ -308,8 +308,9 @@ assign vpll_feed = 1'bZ;
 
 // synchronizers for data that is launched in a different clock domain.
 // all data read by bridge must be in the clk_74a (BRIDGE) domain.
-	wire	[9:0]	square_x_s;
-	wire	[9:0]	square_y_s;
+	// wire	[9:0]	square_x_s;
+	// wire	[9:0]	square_y_s;
+
 	wire	[15:0]	frame_count_s;
 synch_3 #(.WIDTH(16)) s32(frame_count, frame_count_s, clk_74a);
 
@@ -324,15 +325,12 @@ always @(*) begin
 	// because this is a combinatorial block, you should have default cases
 	// or otherwise complete coverage to prevent Quartus from inferring latches
     casex(bridge_addr)
-	default: begin
-		bridge_rd_data <= 0;
-	end
-	32'h002000xx: begin
-		casex(bridge_addr[7:0])
-		default: bridge_rd_data <= square_x_s;
-		8'h04: bridge_rd_data <= square_y_s;
-		endcase
-	end
+	// 32'h002000xx: begin
+	// 	casex(bridge_addr[7:0])
+	// 	default: bridge_rd_data <= square_x_s;
+	// 	8'h04: bridge_rd_data <= square_y_s;
+	// 	endcase
+	// end
 	32'h00F0000C: begin
 		bridge_rd_data <= video_channel_enable;
 	end
@@ -352,6 +350,9 @@ always @(*) begin
     32'hF8xxxxxx: begin
         bridge_rd_data <= cmd_bridge_rd_data;
     end
+	default: begin
+		bridge_rd_data <= 0;
+	end
     endcase
 end
 
@@ -471,10 +472,10 @@ core_bridge_cmd icb (
 	reg			video_resetframe;
 	reg			video_incrframe;
 	
-	reg			video_squareposx;
-	reg			video_squareposy;
-	reg	[9:0]	video_square_newx;
-	reg	[9:0]	video_square_newy;
+	// reg			video_squareposx;
+	// reg			video_squareposy;
+	// reg	[9:0]	video_square_newx;
+	// reg	[9:0]	video_square_newy;
 	
 	reg	[31:0]	signed_value;
 	
@@ -484,19 +485,19 @@ always @(posedge clk_74a) begin
 
 	if(bridge_wr) begin
 	  casex(bridge_addr)
-		32'h002000xx: begin
+		// 32'h002000xx: begin
 			
-			casex(bridge_addr[7:0])
-			8'h00: begin
-				video_square_newx <= bridge_wr_data;
-				video_squareposx <= ~video_squareposx;
-			end
-			8'h04: begin
-				video_square_newy <= bridge_wr_data;
-				video_squareposy <= ~video_squareposy;
-			end
-			endcase
-		end
+			// casex(bridge_addr[7:0])
+			// 8'h00: begin
+			// 	video_square_newx <= bridge_wr_data;
+			// 	video_squareposx <= ~video_squareposx;
+			// end
+			// 8'h04: begin
+			// 	video_square_newy <= bridge_wr_data;
+			// 	video_squareposy <= ~video_squareposy;
+			// end
+			// endcase
+		// end
 		32'h00F0000C: begin
 			video_channel_enable <= bridge_wr_data[2:0];
 		end
