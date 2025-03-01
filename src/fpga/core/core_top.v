@@ -539,70 +539,16 @@ end
 //
 	wire	[2:0]	video_channel_enable_s;
 	wire			video_anim_enable_s;
-	// wire			video_resetsquare_s;
-	// reg				video_resetsquare_last;
 	wire			video_resetframe_s;
 	reg				video_resetframe_last;
 	wire			video_incrframe_s;
 	reg				video_incrframe_last;
-	// wire			video_squareposx_s;
-	// reg				video_squareposx_last;
-	// wire			video_squareposy_s;
-	// reg				video_squareposy_last;
-	// wire	[9:0]	video_square_newx_s;
-	// wire	[9:0]	video_square_newy_s;
-	// reg				video_squareposx_nextcycle;
-	// reg				video_squareposy_nextcycle;
 	
-synch_3 #(.WIDTH(3)) s1(video_channel_enable, video_channel_enable_s, video_rgb_clock);
-synch_3 			 s2(video_anim_enable, video_anim_enable_s, video_rgb_clock);
-// synch_3 			 s3(video_resetsquare, video_resetsquare_s, video_rgb_clock);
-synch_3 			 s4(video_resetframe, video_resetframe_s, video_rgb_clock);
-synch_3 			 s5(video_incrframe, video_incrframe_s, video_rgb_clock);
+	synch_3 #(.WIDTH(3)) s1(video_channel_enable, video_channel_enable_s, video_rgb_clock);
+	synch_3 			 s2(video_anim_enable, video_anim_enable_s, video_rgb_clock);
+	synch_3 			 s4(video_resetframe, video_resetframe_s, video_rgb_clock);
+	synch_3 			 s5(video_incrframe, video_incrframe_s, video_rgb_clock);
 
-// synch_3 			 s6(video_squareposx, video_squareposx_s, video_rgb_clock);
-// synch_3 			 s7(video_squareposy, video_squareposy_s, video_rgb_clock);
-// synch_3 #(.WIDTH(10)) s8(video_square_newx, video_square_newx_s, video_rgb_clock);
-// synch_3 #(.WIDTH(10)) s9(video_square_newy, video_square_newy_s, video_rgb_clock);
-
-
-
-// video generation
-// ~12,288,000 hz pixel clock
-//
-// we want our video mode of 320x240 @ 60hz, this results in 204800 clocks per frame
-// we need to add hblank and vblank times to this, so there will be a nondisplay area. 
-// it can be thought of as a border around the visible area.
-// to make numbers simple, we can have 400 total clocks per line, and 320 visible.
-// dividing 204800 by 400 results in 512 total lines per frame, and 240 visible.
-// this pixel clock is fairly high for the relatively low resolution, but that's fine.
-// PLL output has a minimum output frequency anyway.
-
-
-assign video_rgb_clock = clk_core_12288;
-assign video_rgb_clock_90 = clk_core_12288_90deg;
-assign video_rgb = vidout_rgb;
-assign video_de = vidout_de;
-assign video_skip = vidout_skip;
-assign video_vs = vidout_vs;
-assign video_hs = vidout_hs;
-
-
-// horizontal back porch: 10
-// horizontal active: 320
-// horizontal front porch: 70
-
-// vertical back porch: 10
-// vertical active: 240
-// vertical front porch: 262
-
-	localparam	VID_V_BPORCH = 'd10;
-	localparam	VID_V_ACTIVE = 'd288;
-	localparam	VID_V_TOTAL = 'd512;
-	localparam	VID_H_BPORCH = 'd10;
-	localparam	VID_H_ACTIVE = 'd320;
-	localparam	VID_H_TOTAL = 'd400;
-	
 	
 	localparam CELL_WIDTH = 8;    // Width of each cell in pixels
 	localparam CELL_HEIGHT = 8;   // Height of each cell in pixels
@@ -610,85 +556,65 @@ assign video_hs = vidout_hs;
 	localparam GRID_ROWS = 30;     // Number of rows
 	localparam TOTAL_CELLS = GRID_ROWS * GRID_COLS;
 	
-	// reg [0:0] grid_ram [0:GRID_ROWS-1][0:GRID_COLS-1];
-	reg [5:0] cell_col;
-	reg [4:0] cell_row;
-	reg cell_state;
-	reg [3:0] cell_pixel_x;
-	reg [3:0] cell_pixel_y;
-
-	
 	reg	[15:0]	frame_count;
 	
 	reg	[9:0]	x_count;
 	reg	[9:0]	y_count;
 	
-	wire [9:0]	visible_x = x_count - VID_H_BPORCH;
-	wire [9:0]	visible_y = y_count - VID_V_BPORCH;
+	wire [9:0]	visible_x;
+	wire [9:0]	visible_y;
 
-	reg	[23:0]	vidout_rgb;
-	reg			vidout_de, vidout_de_1;
-	reg			vidout_skip;
-	reg			vidout_vs;
-	reg			vidout_hs, vidout_hs_1;
-	
-	localparam	INIT_X = VID_H_ACTIVE / 2 - (50) / 2;
-	localparam	INIT_Y = VID_V_ACTIVE / 2 - (50) / 2;
-	
-	reg	[9:0]	square_x = INIT_X;
-	reg	[9:0]	square_y = INIT_Y;
-	
+	wire pixel_state;
 
 	integer i, j;
 
-wire [0:TOTAL_CELLS-1] grid_ram_wire;
-reg [0:TOTAL_CELLS-1] grid_ram;
+	wire [0:TOTAL_CELLS-1] grid_ram_wire;
+	reg [0:TOTAL_CELLS-1] grid_ram;
 
-ngy_snake_top #(
-.RAM_LENGTH(GRID_ROWS*GRID_COLS),
-.GRID_COLS(GRID_COLS),
-.GRID_ROWS(GRID_ROWS))
-nst1(
-	.clk_74a(clk_74a),
-	.reset_n(reset_n),
-	.cont1_key(cont1_key),
-	.grid_ram(grid_ram_wire),
-);
+	ngy_snake_top #(
+	.RAM_LENGTH(GRID_ROWS*GRID_COLS),
+	.GRID_COLS(GRID_COLS),
+	.GRID_ROWS(GRID_ROWS))
+	nst1(
+		.clk_74a(clk_74a),
+		.reset_n(reset_n),
+		.cont1_key(cont1_key),
+		.grid_ram(grid_ram_wire),
+	);
 
-wire pixel_state;
 
-pixel_driver pd1(
-	.visible_x(visible_x),
-	.visible_y(visible_y),
-	.grid_ram(grid_ram),
-	.pixel_state(pixel_state),
-	.clk_74a(clk_74a)
-);
+	pixel_driver pd1(
+		.visible_x(visible_x),
+		.visible_y(visible_y),
+		.grid_ram(grid_ram),
+		.pixel_state(pixel_state),
+		.clk_74a(clk_74a)
+	);
 
-vga_controller vc1(
-	.video_rgb(video_rgb),
-	.video_rgb_clock(video_rgb_clock),
-	.video_rgb_clock_90(video_rgb_clock_90),
-	.video_de(video_de),
-	.video_skip(video_skip),
-	.video_vs(video_vs),
-	.video_hs(video_hs),
-	.frame_count(frame_count),
-	.visible_x(visible_x),
-	.visible_y(visible_y),
-	.pixel_state(pixel_state),
-	.clk_core_12288(clk_core_12288),
-	.clk_core_12288_90(clk_core_12288_90deg),
-	.reset_n(reset_n),
-	.video_resetframe_s(video_resetframe_s),
-	.video_incrframe_s(video_incrframe_s),
-	.video_channel_enable_s(video_channel_enable_s),
-	.video_anim_enable_s(video_anim_enable_s)
-);
+	vga_controller vc1(
+		.video_rgb(video_rgb),
+		.video_rgb_clock(video_rgb_clock),
+		.video_rgb_clock_90(video_rgb_clock_90),
+		.video_de(video_de),
+		.video_skip(video_skip),
+		.video_vs(video_vs),
+		.video_hs(video_hs),
+		.frame_count(frame_count),
+		.visible_x(visible_x),
+		.visible_y(visible_y),
+		.pixel_state(pixel_state),
+		.clk_core_12288(clk_core_12288),
+		.clk_core_12288_90(clk_core_12288_90deg),
+		.reset_n(reset_n),
+		.video_resetframe_s(video_resetframe_s),
+		.video_incrframe_s(video_incrframe_s),
+		.video_channel_enable_s(video_channel_enable_s),
+		.video_anim_enable_s(video_anim_enable_s)
+	);
 
-always @(posedge clk_74a) begin
-	grid_ram <= grid_ram_wire;
-end
+	always @(posedge clk_74a) begin
+		grid_ram <= grid_ram_wire;
+	end
 
 //
 // audio i2s silence generator
