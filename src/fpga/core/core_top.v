@@ -308,11 +308,10 @@ assign vpll_feed = 1'bZ;
 
 // synchronizers for data that is launched in a different clock domain.
 // all data read by bridge must be in the clk_74a (BRIDGE) domain.
-	wire	[9:0]	square_x_s;
-	wire	[9:0]	square_y_s;
+	// wire	[9:0]	square_x_s;
+	// wire	[9:0]	square_y_s;
+
 	wire	[15:0]	frame_count_s;
-synch_3 #(.WIDTH(10)) s30(square_x, square_x_s, clk_74a);
-synch_3 #(.WIDTH(10)) s31(square_y, square_y_s, clk_74a);
 synch_3 #(.WIDTH(16)) s32(frame_count, frame_count_s, clk_74a);
 
 
@@ -326,15 +325,12 @@ always @(*) begin
 	// because this is a combinatorial block, you should have default cases
 	// or otherwise complete coverage to prevent Quartus from inferring latches
     casex(bridge_addr)
-	default: begin
-		bridge_rd_data <= 0;
-	end
-	32'h002000xx: begin
-		casex(bridge_addr[7:0])
-		default: bridge_rd_data <= square_x_s;
-		8'h04: bridge_rd_data <= square_y_s;
-		endcase
-	end
+	// 32'h002000xx: begin
+	// 	casex(bridge_addr[7:0])
+	// 	default: bridge_rd_data <= square_x_s;
+	// 	8'h04: bridge_rd_data <= square_y_s;
+	// 	endcase
+	// end
 	32'h00F0000C: begin
 		bridge_rd_data <= video_channel_enable;
 	end
@@ -354,6 +350,9 @@ always @(*) begin
     32'hF8xxxxxx: begin
         bridge_rd_data <= cmd_bridge_rd_data;
     end
+	default: begin
+		bridge_rd_data <= 0;
+	end
     endcase
 end
 
@@ -473,10 +472,10 @@ core_bridge_cmd icb (
 	reg			video_resetframe;
 	reg			video_incrframe;
 	
-	reg			video_squareposx;
-	reg			video_squareposy;
-	reg	[9:0]	video_square_newx;
-	reg	[9:0]	video_square_newy;
+	// reg			video_squareposx;
+	// reg			video_squareposy;
+	// reg	[9:0]	video_square_newx;
+	// reg	[9:0]	video_square_newy;
 	
 	reg	[31:0]	signed_value;
 	
@@ -486,19 +485,19 @@ always @(posedge clk_74a) begin
 
 	if(bridge_wr) begin
 	  casex(bridge_addr)
-		32'h002000xx: begin
+		// 32'h002000xx: begin
 			
-			casex(bridge_addr[7:0])
-			8'h00: begin
-				video_square_newx <= bridge_wr_data;
-				video_squareposx <= ~video_squareposx;
-			end
-			8'h04: begin
-				video_square_newy <= bridge_wr_data;
-				video_squareposy <= ~video_squareposy;
-			end
-			endcase
-		end
+			// casex(bridge_addr[7:0])
+			// 8'h00: begin
+			// 	video_square_newx <= bridge_wr_data;
+			// 	video_squareposx <= ~video_squareposx;
+			// end
+			// 8'h04: begin
+			// 	video_square_newy <= bridge_wr_data;
+			// 	video_squareposy <= ~video_squareposy;
+			// end
+			// endcase
+		// end
 		32'h00F0000C: begin
 			video_channel_enable <= bridge_wr_data[2:0];
 		end
@@ -539,70 +538,16 @@ end
 //
 	wire	[2:0]	video_channel_enable_s;
 	wire			video_anim_enable_s;
-	// wire			video_resetsquare_s;
-	// reg				video_resetsquare_last;
 	wire			video_resetframe_s;
 	reg				video_resetframe_last;
 	wire			video_incrframe_s;
 	reg				video_incrframe_last;
-	// wire			video_squareposx_s;
-	// reg				video_squareposx_last;
-	// wire			video_squareposy_s;
-	// reg				video_squareposy_last;
-	// wire	[9:0]	video_square_newx_s;
-	// wire	[9:0]	video_square_newy_s;
-	// reg				video_squareposx_nextcycle;
-	// reg				video_squareposy_nextcycle;
 	
-synch_3 #(.WIDTH(3)) s1(video_channel_enable, video_channel_enable_s, video_rgb_clock);
-synch_3 			 s2(video_anim_enable, video_anim_enable_s, video_rgb_clock);
-// synch_3 			 s3(video_resetsquare, video_resetsquare_s, video_rgb_clock);
-synch_3 			 s4(video_resetframe, video_resetframe_s, video_rgb_clock);
-synch_3 			 s5(video_incrframe, video_incrframe_s, video_rgb_clock);
+	synch_3 #(.WIDTH(3)) s1(video_channel_enable, video_channel_enable_s, video_rgb_clock);
+	synch_3 			 s2(video_anim_enable, video_anim_enable_s, video_rgb_clock);
+	synch_3 			 s4(video_resetframe, video_resetframe_s, video_rgb_clock);
+	synch_3 			 s5(video_incrframe, video_incrframe_s, video_rgb_clock);
 
-// synch_3 			 s6(video_squareposx, video_squareposx_s, video_rgb_clock);
-// synch_3 			 s7(video_squareposy, video_squareposy_s, video_rgb_clock);
-// synch_3 #(.WIDTH(10)) s8(video_square_newx, video_square_newx_s, video_rgb_clock);
-// synch_3 #(.WIDTH(10)) s9(video_square_newy, video_square_newy_s, video_rgb_clock);
-
-
-
-// video generation
-// ~12,288,000 hz pixel clock
-//
-// we want our video mode of 320x240 @ 60hz, this results in 204800 clocks per frame
-// we need to add hblank and vblank times to this, so there will be a nondisplay area. 
-// it can be thought of as a border around the visible area.
-// to make numbers simple, we can have 400 total clocks per line, and 320 visible.
-// dividing 204800 by 400 results in 512 total lines per frame, and 240 visible.
-// this pixel clock is fairly high for the relatively low resolution, but that's fine.
-// PLL output has a minimum output frequency anyway.
-
-
-assign video_rgb_clock = clk_core_12288;
-assign video_rgb_clock_90 = clk_core_12288_90deg;
-assign video_rgb = vidout_rgb;
-assign video_de = vidout_de;
-assign video_skip = vidout_skip;
-assign video_vs = vidout_vs;
-assign video_hs = vidout_hs;
-
-
-// horizontal back porch: 10
-// horizontal active: 320
-// horizontal front porch: 70
-
-// vertical back porch: 10
-// vertical active: 240
-// vertical front porch: 262
-
-	localparam	VID_V_BPORCH = 'd10;
-	localparam	VID_V_ACTIVE = 'd288;
-	localparam	VID_V_TOTAL = 'd512;
-	localparam	VID_H_BPORCH = 'd10;
-	localparam	VID_H_ACTIVE = 'd320;
-	localparam	VID_H_TOTAL = 'd400;
-	
 	
 	localparam CELL_WIDTH = 8;    // Width of each cell in pixels
 	localparam CELL_HEIGHT = 8;   // Height of each cell in pixels
@@ -610,160 +555,67 @@ assign video_hs = vidout_hs;
 	localparam GRID_ROWS = 30;     // Number of rows
 	localparam TOTAL_CELLS = GRID_ROWS * GRID_COLS;
 	
-	// reg [0:0] grid_ram [0:GRID_ROWS-1][0:GRID_COLS-1];
-	reg [5:0] cell_col;
-	reg [4:0] cell_row;
-	reg cell_state;
-	reg [3:0] cell_pixel_x;
-	reg [3:0] cell_pixel_y;
-
-	
 	reg	[15:0]	frame_count;
+	wire [15:0] frame_count_wire;
 	
 	reg	[9:0]	x_count;
 	reg	[9:0]	y_count;
 	
-	wire [9:0]	visible_x = x_count - VID_H_BPORCH;
-	wire [9:0]	visible_y = y_count - VID_V_BPORCH;
+	wire [9:0]	visible_x;
+	wire [9:0]	visible_y;
 
-	reg	[23:0]	vidout_rgb;
-	reg			vidout_de, vidout_de_1;
-	reg			vidout_skip;
-	reg			vidout_vs;
-	reg			vidout_hs, vidout_hs_1;
-	
-	localparam	INIT_X = VID_H_ACTIVE / 2 - (50) / 2;
-	localparam	INIT_Y = VID_V_ACTIVE / 2 - (50) / 2;
-	
-	reg	[9:0]	square_x = INIT_X;
-	reg	[9:0]	square_y = INIT_Y;
-	
+	wire pixel_state;
 
 	integer i, j;
 
-wire [0:TOTAL_CELLS-1] grid_ram_wire;
-reg [0:TOTAL_CELLS-1] grid_ram;
+	wire [0:TOTAL_CELLS-1] grid_ram_wire;
+	reg [0:TOTAL_CELLS-1] grid_ram;
 
-ngy_snake_top #(
-.RAM_LENGTH(GRID_ROWS*GRID_COLS),
-.GRID_COLS(GRID_COLS),
-.GRID_ROWS(GRID_ROWS))
-nst1(
-	.clk_74a(clk_74a),
-	.reset_n(reset_n),
-	.cont1_key(cont1_key),
-	.grid_ram(grid_ram_wire),
-);
+	ngy_snake_top #(
+	.RAM_LENGTH(GRID_ROWS*GRID_COLS),
+	.GRID_COLS(GRID_COLS),
+	.GRID_ROWS(GRID_ROWS))
+	nst1(
+		.clk_74a(clk_74a),
+		.reset_n(reset_n),
+		.cont1_key(cont1_key),
+		.grid_ram(grid_ram_wire),
+	);
 
 
-always @(posedge clk_74a) begin
-	grid_ram <= grid_ram_wire;
-end
+	pixel_driver pd1(
+		.visible_x(visible_x),
+		.visible_y(visible_y),
+		.grid_ram(grid_ram),
+		.pixel_state(pixel_state),
+		.clk_74a(clk_74a)
+	);
 
-always @(posedge video_rgb_clock or negedge reset_n) begin
+	vga_controller vc1(
+		.video_rgb(video_rgb),
+		.video_rgb_clock(video_rgb_clock),
+		.video_rgb_clock_90(video_rgb_clock_90),
+		.video_de(video_de),
+		.video_skip(video_skip),
+		.video_vs(video_vs),
+		.video_hs(video_hs),
+		.frame_count(frame_count_wire),
+		.visible_x(visible_x),
+		.visible_y(visible_y),
+		.pixel_state(pixel_state),
+		.clk_core_12288(clk_core_12288),
+		.clk_core_12288_90(clk_core_12288_90deg),
+		.reset_n(reset_n),
+		.video_resetframe_s(video_resetframe_s),
+		.video_incrframe_s(video_incrframe_s),
+		.video_channel_enable_s(video_channel_enable_s),
+		.video_anim_enable_s(video_anim_enable_s)
+	);
 
-	if(~reset_n) begin
-		x_count <= 0;
-		y_count <= 0;
-		
-	end else begin
-		
-		vidout_de <= 0;
-		vidout_skip <= 0;
-		vidout_vs <= 0;
-		vidout_hs <= 0;
-		
-		vidout_hs_1 <= vidout_hs;
-		vidout_de_1 <= vidout_de;
-		
-		video_resetframe_last <= video_resetframe_s;
-		video_incrframe_last <= video_incrframe_s;
-		
-		// x and y counters
-		x_count <= x_count + 1'b1;
-		if(x_count == VID_H_TOTAL-1) begin
-			x_count <= 0;
-			
-			y_count <= y_count + 1'b1;
-			if(y_count == VID_V_TOTAL-1) begin
-				y_count <= 0;
-			end
-		end
-		
-		// generate sync 
-		if(x_count == 0 && y_count == 0) begin
-			// sync signal in back porch
-			// new frame
-			vidout_vs <= 1;
-			
-			if(video_anim_enable_s) begin
-				frame_count <= frame_count + 1'b1;
-			end
-		end
-		
-		// we want HS to occur a bit after VS, not on the same cycle
-		if(x_count == 3) begin
-			// sync signal in back porch
-			// new line
-			vidout_hs <= 1;
-		end
-
-		// inactive screen areas are black
-		vidout_rgb <= 24'h0;
-		// generate active video
-		if(x_count >= VID_H_BPORCH && x_count < VID_H_ACTIVE+VID_H_BPORCH) begin
-
-			if(y_count >= VID_V_BPORCH && y_count < VID_V_ACTIVE+VID_V_BPORCH) begin
-				// data enable. this is the active region of the line
-				vidout_de <= 1;
-				
-				// blank out background channels if they are masked
-				if(~video_channel_enable_s[2]) vidout_rgb[23:16] <= 0;
-				if(~video_channel_enable_s[1]) vidout_rgb[15:8] <= 0;
-				if(~video_channel_enable_s[0]) vidout_rgb[7:0] <= 0;
-				
-				// add colored borders for debugging
-				if(visible_x == 0) begin
-					vidout_rgb <= 24'hFFFFFF;
-				end else if(visible_x == VID_H_ACTIVE-1) begin
-					vidout_rgb <= 24'h00FF00;
-				end else if(visible_y == 0) begin
-					vidout_rgb <= 24'hFF0000;
-				end else if(visible_y == VID_V_ACTIVE-1) begin
-					vidout_rgb <= 24'h0000FF;
-				end
-				
-				// Calculate cell indices
-				cell_col = visible_x / CELL_WIDTH;
-				cell_row = visible_y / CELL_HEIGHT;
-
-				// Access cell state from grid_ram
-				if (cell_col < GRID_COLS && cell_row < GRID_ROWS) begin
-					cell_state = grid_ram[cell_row * GRID_COLS + cell_col];
-				end else begin
-					cell_state = 1'b0;
-				end
-
-				// Calculate position within the cell
-				cell_pixel_x = visible_x % CELL_WIDTH;
-				cell_pixel_y = visible_y % CELL_HEIGHT;
-				vidout_rgb <= (cell_state == 1'b1) ? 24'hFFFFFF : 24'h000000;
-				
-			end 
-		end
-		
-		// detect any edge coming from the synchronized frame reset signal
-		if(video_resetframe_last != video_resetframe_s) begin
-			frame_count <= 0;
-		end
-		
-		// detect any edge coming from the synchronized frame reset signal
-		if(video_incrframe_last != video_incrframe_s) begin
-			frame_count <= frame_count + 1'b1;
-		end
-		
+	always @(posedge clk_74a) begin
+		grid_ram <= grid_ram_wire;
+		frame_count <= frame_count_wire;
 	end
-end
 
 //
 // audio i2s silence generator
