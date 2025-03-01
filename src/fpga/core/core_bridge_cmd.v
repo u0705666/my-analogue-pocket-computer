@@ -227,6 +227,9 @@ always @(posedge clk) begin
             8'h44: bridge_rd_data_out <= host_44;
             8'h48: bridge_rd_data_out <= host_48;
             8'h4C: bridge_rd_data_out <= host_4C;
+            default: begin
+                bridge_rd_data_out <= 0;
+            end
             endcase
         end
         32'hF8xx10xx: begin
@@ -238,11 +241,16 @@ always @(posedge clk) begin
             8'h24: bridge_rd_data_out <= target_24;
             8'h28: bridge_rd_data_out <= target_28;
             8'h2C: bridge_rd_data_out <= target_2C;
+            default: begin
+                bridge_rd_data_out <= 0;
+            end
             endcase
         end
         32'hF8xx2xxx: begin
             bridge_rd_data_out <= b_datatable_q;
-        
+        end
+        default: begin
+            bridge_rd_data_out <= 0;
         end
         endcase
     end
