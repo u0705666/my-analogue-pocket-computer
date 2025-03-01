@@ -146,7 +146,7 @@ always @(posedge clk_core_12288 or negedge reset_n) begin
 					vidout_rgb <= 24'h0000FF;
 				end
 				
-				vidout_rgb <= (pixel_state == 1'b1) ? 24'hFFFFFF : 24'h000000;
+				vidout_rgb <= (pixel_state == 1'b1) ? 24'h66DD24: 24'h000000;
 				
 			end 
 		end
