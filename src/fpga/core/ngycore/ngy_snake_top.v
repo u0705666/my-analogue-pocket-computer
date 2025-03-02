@@ -1,14 +1,12 @@
 `default_nettype none
 
-module ngy_snake_top #(
-    parameter RAM_LENGTH = 1199, 
-    parameter GRID_ROWS = 30, 
-    parameter GRID_COLS = 40
-)(
+module ngy_snake_top (
     input wire clk_74a, // 74mhz clock
     input wire reset_n,
     input wire [15:0] cont1_key,
-    output reg [0:RAM_LENGTH-1] grid_ram // this represents a 30x40 led screen ram
+    input wire [9:0]	visible_x,
+    input wire [9:0]	visible_y,
+    output wire pixel_state
 );
 
     wire dpad_up = cont1_key[0];
@@ -26,6 +24,24 @@ module ngy_snake_top #(
         .reset_n(reset_n),
         .clk_out(clk_10hz)
     );
+
+    //video setup
+
+	localparam CELL_WIDTH = 8;    // Width of each cell in pixels
+	localparam CELL_HEIGHT = 8;   // Height of each cell in pixels
+	localparam GRID_COLS = 40;     // Number of columns
+	localparam GRID_ROWS = 30;     // Number of rows
+	localparam RAM_LENGTH = GRID_ROWS * GRID_COLS;
+
+    reg [0:RAM_LENGTH-1] grid_ram; // this represents a 30x40 led screen ram
+
+	pixel_driver pd1(
+		.visible_x(visible_x),
+		.visible_y(visible_y),
+		.grid_ram(grid_ram),
+		.pixel_state(pixel_state),
+		.clk_74a(clk_74a)
+	);
 
     // Snake parameters
     localparam SNAKE_INIT_LENGTH = 5;
@@ -131,11 +147,6 @@ module ngy_snake_top #(
                     end
                 end
                 2'b10: begin //draw snake
-                    // for (i = 0; i < snake_length; i = i + 1) begin
-                    //     if (i < SNAKE_MAX_LENGTH) begin 
-                    //         grid_ram[snake_y[i] * GRID_COLS + snake_x[i]] <= 1;
-                    //     end
-                    // end
                     if (snake_index < snake_length-1 && snake_index < SNAKE_MAX_LENGTH) begin
                         grid_ram[snake_y[snake_index] * GRID_COLS + snake_x[snake_index]] <= 1;
                         snake_index <= snake_index + 1;

@@ -549,11 +549,6 @@ end
 	synch_3 			 s5(video_incrframe, video_incrframe_s, video_rgb_clock);
 
 	
-	localparam CELL_WIDTH = 8;    // Width of each cell in pixels
-	localparam CELL_HEIGHT = 8;   // Height of each cell in pixels
-	localparam GRID_COLS = 40;     // Number of columns
-	localparam GRID_ROWS = 30;     // Number of rows
-	localparam TOTAL_CELLS = GRID_ROWS * GRID_COLS;
 	
 	reg	[15:0]	frame_count;
 	wire [15:0] frame_count_wire;
@@ -563,32 +558,16 @@ end
 	
 	wire [9:0]	visible_x;
 	wire [9:0]	visible_y;
-
 	wire pixel_state;
 
-	integer i, j;
 
-	wire [0:TOTAL_CELLS-1] grid_ram_wire;
-	reg [0:TOTAL_CELLS-1] grid_ram;
-
-	ngy_snake_top #(
-	.RAM_LENGTH(GRID_ROWS*GRID_COLS),
-	.GRID_COLS(GRID_COLS),
-	.GRID_ROWS(GRID_ROWS))
-	nst1(
+	ngy_snake_top nst1(
 		.clk_74a(clk_74a),
 		.reset_n(reset_n),
 		.cont1_key(cont1_key),
-		.grid_ram(grid_ram_wire),
-	);
-
-
-	pixel_driver pd1(
 		.visible_x(visible_x),
 		.visible_y(visible_y),
-		.grid_ram(grid_ram),
-		.pixel_state(pixel_state),
-		.clk_74a(clk_74a)
+		.pixel_state(pixel_state)
 	);
 
 	vga_controller vc1(
@@ -613,7 +592,6 @@ end
 	);
 
 	always @(posedge clk_74a) begin
-		grid_ram <= grid_ram_wire;
 		frame_count <= frame_count_wire;
 	end
 
