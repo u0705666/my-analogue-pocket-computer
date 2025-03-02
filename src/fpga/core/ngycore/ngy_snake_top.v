@@ -1,14 +1,12 @@
 `default_nettype none
 
-module ngy_snake_top #(
-    parameter RAM_LENGTH = 1199, 
-    parameter GRID_ROWS = 30, 
-    parameter GRID_COLS = 40
-)(
+module ngy_snake_top (
     input wire clk_74a, // 74mhz clock
     input wire reset_n,
     input wire [15:0] cont1_key,
-    output reg [0:RAM_LENGTH-1] grid_ram // this represents a 30x40 led screen ram
+    input wire [9:0]	visible_x,
+    input wire [9:0]	visible_y,
+    output wire pixel_state
 );
 
     wire dpad_up = cont1_key[0];
@@ -26,6 +24,42 @@ module ngy_snake_top #(
         .reset_n(reset_n),
         .clk_out(clk_10hz)
     );
+
+    //screen parameters
+	localparam CELL_WIDTH = 8;    // Width of each cell in pixels
+	localparam CELL_HEIGHT = 8;   // Height of each cell in pixels
+	localparam GRID_COLS = 40;     // Number of columns
+	localparam GRID_ROWS = 30;     // Number of rows
+	localparam RAM_LENGTH = GRID_ROWS * GRID_COLS;
+
+    reg sram_wr_en;
+    wire [10:0] sram_addr;
+    reg sram_data_in;
+    wire sram_data_out;
+
+    assign sram_addr = sram_wr_en ? sram_write_addr : sram_read_addr;
+
+
+    sram_module sram_module_inst (
+        .clk_74a(clk_74a),
+        .wr_en(sram_wr_en),
+        .addr(sram_addr),
+        .data_in(sram_data_in),
+        .data_out(sram_data_out)
+    );
+
+    wire [10:0] sram_read_addr; // for read data from sram to pixel driver
+    reg [10:0] sram_write_addr; // for write data to sram from snake
+
+    pixel_driver pd1(
+		.visible_x(visible_x),
+		.visible_y(visible_y),
+		.pixel_state(pixel_state),
+		.clk_74a(clk_74a),
+        .sram_addr(sram_read_addr),
+        .sram_data_out(sram_data_out),
+        .is_sram_available_to_read(~sram_wr_en)
+	);
 
     // Snake parameters
     localparam SNAKE_INIT_LENGTH = 5;
@@ -61,6 +95,11 @@ module ngy_snake_top #(
         end
     end
 
+
+   // Snake movement detection
+    reg snake_moved_toggle = 0;  // Toggle signal in 10Hz domain
+    reg [1:0] snake_moved_sync;  // Synchronizer in 74MHz domain
+
     // Move snake
     always @(posedge clk_10hz or negedge reset_n) begin
         integer i;
@@ -72,6 +111,7 @@ module ngy_snake_top #(
                 snake_x[i] <= 20 + i;
                 snake_y[i] <= 15;
             end
+            snake_moved_toggle <= 0;
         end else begin
             // Move snake body
             for (i = SNAKE_MAX_LENGTH-1; i > 0; i = i - 1) begin
@@ -88,23 +128,79 @@ module ngy_snake_top #(
                 2'b10: snake_x[0] <= snake_x[0] - 1; // left
                 2'b11: snake_y[0] <= snake_y[0] - 1; // up
             endcase
+
+            // Detect snake movement
+            snake_moved_toggle <= ~snake_moved_toggle;
         end
     end
 
-    // Update grid RAM
-    always @(posedge clk_74a) begin
-        integer i, j;
-        // Clear grid
-        for (i = 0; i < GRID_ROWS; i = i + 1) begin
-            for (j = 0; j < GRID_COLS; j = j + 1) begin
-                grid_ram[i * GRID_COLS + j] <= 0;
-            end
+    // Synchronize to 74MHz domain
+    always @(posedge clk_74a or negedge reset_n) begin
+        if (!reset_n) begin
+            snake_moved_sync <= 2'b00;
+        end else begin
+            snake_moved_sync <= {snake_moved_sync[0], snake_moved_toggle};
         end
-        // Draw snake
-        for (i = 0; i < snake_length; i = i + 1) begin
-            if (i < SNAKE_MAX_LENGTH) begin
-                grid_ram[snake_y[i] * GRID_COLS + snake_x[i]] <= 1;
-            end
+    end
+
+    // Generate pulse when toggle changes (74MHz domain)
+    wire snake_moved_pulse = (snake_moved_sync[1] ^ snake_moved_sync[0]);
+
+
+    reg [1:0] ram_update_state;
+    reg [3:0] snake_index;
+
+    // Update grid RAM
+    // always @(posedge clk_74a or negedge reset_n) begin
+    //     integer i, j;
+    //     // Clear grid
+    //     for (i = 0; i < GRID_ROWS; i = i + 1) begin
+    //         for (j = 0; j < GRID_COLS; j = j + 1) begin
+    //             grid_ram[i * GRID_COLS + j] <= 0;
+    //         end
+    //     end
+    //     // Draw snake
+    //     for (i = 0; i < snake_length; i = i + 1) begin
+    //         if (i < SNAKE_MAX_LENGTH) begin
+    //             grid_ram[snake_y[i] * GRID_COLS + snake_x[i]] <= 1;
+    //         end
+    //     end
+    // end
+
+    always @(posedge clk_74a or negedge reset_n) begin
+        if (!reset_n) begin
+            ram_update_state <= 2'b00;
+        end else begin
+            case (ram_update_state)
+                2'b00: begin
+                    sram_write_addr <= 11'b0;
+                    sram_wr_en <= 1'b1;
+                    ram_update_state <= 2'b01;
+                end
+                2'b01: begin //clear grid
+                    sram_data_in <= 0;
+                    sram_write_addr <= sram_write_addr + 1;
+                    if (sram_write_addr == RAM_LENGTH-1) begin
+                        ram_update_state <= 2'b10;
+                        snake_index <= 0;
+                    end
+                end
+                2'b10: begin //draw snake
+                    if (snake_index < snake_length-1 && snake_index < SNAKE_MAX_LENGTH) begin
+                        sram_write_addr <= snake_y[snake_index] * GRID_COLS + snake_x[snake_index];
+                        sram_data_in <= 1;
+                        snake_index <= snake_index + 1;
+                    end else begin
+                        ram_update_state <= 2'b11;
+                    end
+                end
+                2'b11: begin //reset to 00 for now
+                    sram_wr_en <= 1'b0;
+                    if (snake_moved_pulse) begin
+                        ram_update_state <= 2'b00;
+                    end
+                end
+            endcase
         end
     end
 endmodule

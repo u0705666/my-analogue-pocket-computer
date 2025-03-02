@@ -2,9 +2,11 @@
 module pixel_driver(
     input wire [9:0] visible_x,
     input wire [9:0] visible_y,
-    input wire [0:1199] grid_ram,
     output reg pixel_state,
-    input wire clk_74a
+    input wire clk_74a,
+    output reg [10:0] sram_addr,
+    input wire sram_data_out,
+    input wire is_sram_available_to_read
 );
 
 	localparam CELL_WIDTH = 8;    // Width of each cell in pixels
@@ -22,8 +24,9 @@ module pixel_driver(
         cell_col = visible_x / CELL_WIDTH;
         cell_row = visible_y / CELL_HEIGHT;
 
-        if (cell_col < GRID_COLS && cell_row < GRID_ROWS) begin
-            pixel_state = grid_ram[cell_row * GRID_COLS + cell_col];
+        if (cell_col < GRID_COLS && cell_row < GRID_ROWS && is_sram_available_to_read) begin
+            sram_addr = cell_row * GRID_COLS + cell_col;
+            pixel_state = sram_data_out;
         end else begin
             pixel_state = 1'b0;
         end
