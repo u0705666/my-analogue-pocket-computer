@@ -150,22 +150,6 @@ module ngy_snake_top (
     reg [1:0] ram_update_state;
     reg [3:0] snake_index;
 
-    // Update grid RAM
-    // always @(posedge clk_74a or negedge reset_n) begin
-    //     integer i, j;
-    //     // Clear grid
-    //     for (i = 0; i < GRID_ROWS; i = i + 1) begin
-    //         for (j = 0; j < GRID_COLS; j = j + 1) begin
-    //             grid_ram[i * GRID_COLS + j] <= 0;
-    //         end
-    //     end
-    //     // Draw snake
-    //     for (i = 0; i < snake_length; i = i + 1) begin
-    //         if (i < SNAKE_MAX_LENGTH) begin
-    //             grid_ram[snake_y[i] * GRID_COLS + snake_x[i]] <= 1;
-    //         end
-    //     end
-    // end
 
     always @(posedge clk_74a or negedge reset_n) begin
         if (!reset_n) begin
