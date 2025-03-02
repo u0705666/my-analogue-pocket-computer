@@ -91,20 +91,62 @@ module ngy_snake_top #(
         end
     end
 
+    reg [1:0] ram_update_state;
+    reg [10:0] grid_ram_index;
+    reg [3:0] snake_index;
+
     // Update grid RAM
-    always @(posedge clk_74a) begin
-        integer i, j;
-        // Clear grid
-        for (i = 0; i < GRID_ROWS; i = i + 1) begin
-            for (j = 0; j < GRID_COLS; j = j + 1) begin
-                grid_ram[i * GRID_COLS + j] <= 0;
-            end
-        end
-        // Draw snake
-        for (i = 0; i < snake_length; i = i + 1) begin
-            if (i < SNAKE_MAX_LENGTH) begin
-                grid_ram[snake_y[i] * GRID_COLS + snake_x[i]] <= 1;
-            end
+    // always @(posedge clk_74a or negedge reset_n) begin
+    //     integer i, j;
+    //     // Clear grid
+    //     for (i = 0; i < GRID_ROWS; i = i + 1) begin
+    //         for (j = 0; j < GRID_COLS; j = j + 1) begin
+    //             grid_ram[i * GRID_COLS + j] <= 0;
+    //         end
+    //     end
+    //     // Draw snake
+    //     for (i = 0; i < snake_length; i = i + 1) begin
+    //         if (i < SNAKE_MAX_LENGTH) begin
+    //             grid_ram[snake_y[i] * GRID_COLS + snake_x[i]] <= 1;
+    //         end
+    //     end
+    // end
+
+    always @(posedge clk_74a or negedge reset_n) begin
+        if (!reset_n) begin
+            ram_update_state <= 2'b00;
+            grid_ram_index <= 11'b0;
+        end else begin
+            case (ram_update_state)
+                2'b00: begin
+                    grid_ram_index <= 11'b0;
+                    ram_update_state <= 2'b01;
+                end
+                2'b01: begin //clear grid
+                    grid_ram[grid_ram_index] <= 0;
+                    grid_ram_index <= grid_ram_index + 1;
+                    if (grid_ram_index == RAM_LENGTH-1) begin
+                        ram_update_state <= 2'b10;
+                        snake_index <= 0;
+                    end
+                end
+                2'b10: begin //draw snake
+                    // for (i = 0; i < snake_length; i = i + 1) begin
+                    //     if (i < SNAKE_MAX_LENGTH) begin 
+                    //         grid_ram[snake_y[i] * GRID_COLS + snake_x[i]] <= 1;
+                    //     end
+                    // end
+                    if (snake_index < snake_length-1 && snake_index < SNAKE_MAX_LENGTH) begin
+                        grid_ram[snake_y[snake_index] * GRID_COLS + snake_x[snake_index]] <= 1;
+                        snake_index <= snake_index + 1;
+                    end else begin
+                        ram_update_state <= 2'b00;
+                    end
+                end
+                2'b11: begin //reset to 00 for now
+                    ram_update_state <= 2'b00;
+                end
+            endcase
         end
     end
 endmodule
