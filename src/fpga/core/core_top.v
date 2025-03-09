@@ -293,12 +293,12 @@ assign dram_ras_n = 'h1;
 assign dram_cas_n = 'h1;
 assign dram_we_n = 'h1;
 
-assign sram_a = 'h0;
-assign sram_dq = {16{1'bZ}};
-assign sram_oe_n  = 1;
-assign sram_we_n  = 1;
-assign sram_ub_n  = 1;
-assign sram_lb_n  = 1;
+// assign sram_a = 'h0;
+// assign sram_dq = {16{1'bZ}};
+// assign sram_oe_n  = 1;
+// assign sram_we_n  = 1;
+// assign sram_ub_n  = 1;
+// assign sram_lb_n  = 1;
 
 assign dbg_tx = 1'bZ;
 assign user1 = 1'bZ;
@@ -567,7 +567,13 @@ end
 		.cont1_key(cont1_key),
 		.visible_x(visible_x),
 		.visible_y(visible_y),
-		.pixel_state(pixel_state)
+		.pixel_state(pixel_state),
+		.sram_chip_addr(sram_a),
+		.sram_chip_data(sram_dq),
+		.sram_chip_oe_n(sram_oe_n),
+		.sram_chip_we_n(sram_we_n),
+		.sram_chip_ub_n(sram_ub_n),
+		.sram_chip_lb_n(sram_lb_n)
 	);
 
 	vga_controller vc1(
