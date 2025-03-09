@@ -6,7 +6,14 @@ module ngy_snake_top (
     input wire [15:0] cont1_key,
     input wire [9:0]	visible_x,
     input wire [9:0]	visible_y,
-    output wire pixel_state
+    output wire pixel_state,
+
+    output wire [16:0] sram_chip_addr,
+    inout wire [15:0] sram_chip_data,
+    output wire sram_chip_oe_n,
+    output wire sram_chip_we_n,
+    output wire sram_chip_ub_n,
+    output wire sram_chip_lb_n
 );
 
     wire dpad_up = cont1_key[0];
@@ -38,15 +45,23 @@ module ngy_snake_top (
     wire sram_data_out;
 
     assign sram_addr = sram_wr_en ? sram_write_addr : sram_read_addr;
+    assign sram_chip_addr = {6'b0, sram_addr};
+    assign sram_chip_data = sram_wr_en ? {15'b0, sram_data_in} : 16'bz;
+    assign sram_data_out = sram_chip_data[0];
+    assign sram_chip_we_n = ~sram_wr_en;
+    assign sram_chip_oe_n = sram_wr_en;
+    assign sram_chip_ub_n = 1'b0;
+    assign sram_chip_lb_n = 1'b0;
 
 
-    sram_module sram_module_inst (
-        .clk_74a(clk_74a),
-        .wr_en(sram_wr_en),
-        .addr(sram_addr),
-        .data_in(sram_data_in),
-        .data_out(sram_data_out)
-    );
+
+    // sram_module sram_module_inst (
+    //     .clk_74a(clk_74a),
+    //     .wr_en(sram_wr_en),
+    //     .addr(sram_addr),
+    //     .data_in(sram_data_in),
+    //     .data_out(sram_data_out)
+    // );
 
     wire [10:0] sram_read_addr; // for read data from sram to pixel driver
     reg [10:0] sram_write_addr; // for write data to sram from snake
