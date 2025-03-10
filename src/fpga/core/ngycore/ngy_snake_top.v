@@ -193,7 +193,7 @@ module ngy_snake_top (
                         ram_update_state <= 2'b11;
                     end
                 end
-                2'b11: begin //reset to 00 for now
+                2'b11: begin //wait for next snake move
                     sram_wr_en <= 1'b0;
                     if (snake_moved_pulse) begin
                         ram_update_state <= 2'b00;
