@@ -555,28 +555,12 @@ end
 	
 	reg	[9:0]	x_count;
 	reg	[9:0]	y_count;
-	
-	wire [9:0]	visible_x;
-	wire [9:0]	visible_y;
-	wire pixel_state;
 
 
-	ngy_snake_top nst1(
+	ngy_core_top ngy_core_top_inst(
 		.clk_74a(clk_74a),
 		.reset_n(reset_n),
 		.cont1_key(cont1_key),
-		.visible_x(visible_x),
-		.visible_y(visible_y),
-		.pixel_state(pixel_state),
-		.sram_chip_addr(sram_a),
-		.sram_chip_data(sram_dq),
-		.sram_chip_oe_n(sram_oe_n),
-		.sram_chip_we_n(sram_we_n),
-		.sram_chip_ub_n(sram_ub_n),
-		.sram_chip_lb_n(sram_lb_n)
-	);
-
-	vga_controller vc1(
 		.video_rgb(video_rgb),
 		.video_rgb_clock(video_rgb_clock),
 		.video_rgb_clock_90(video_rgb_clock_90),
@@ -584,17 +568,19 @@ end
 		.video_skip(video_skip),
 		.video_vs(video_vs),
 		.video_hs(video_hs),
-		.frame_count(frame_count_wire),
-		.visible_x(visible_x),
-		.visible_y(visible_y),
-		.pixel_state(pixel_state),
-		.clk_core_12288(clk_core_12288),
-		.clk_core_12288_90(clk_core_12288_90deg),
-		.reset_n(reset_n),
+		.video_channel_enable_s(video_channel_enable_s),
+		.video_anim_enable_s(video_anim_enable_s),
 		.video_resetframe_s(video_resetframe_s),
 		.video_incrframe_s(video_incrframe_s),
-		.video_channel_enable_s(video_channel_enable_s),
-		.video_anim_enable_s(video_anim_enable_s)
+		.clk_core_12288(clk_core_12288),
+		.clk_core_12288_90deg(clk_core_12288_90deg),
+		.sram_a(sram_a),
+		.sram_dq(sram_dq),
+		.sram_oe_n(sram_oe_n),
+		.sram_we_n(sram_we_n),
+		.sram_ub_n(sram_ub_n),
+		.sram_lb_n(sram_lb_n),
+		.frame_count_wire(frame_count_wire)
 	);
 
 	always @(posedge clk_74a) begin
