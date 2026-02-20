@@ -1,0 +1,17 @@
+{
+    "input": {
+        "magic": "APF_VER_1",
+        "controllers": [
+            {
+                "type": "default",
+                "mappings": [
+                    {
+                        "id": 0,
+                        "name": "Rerun Program (Any D-pad)",
+                        "key": "pad_btn_right"
+                    }
+                ]
+            }
+        ]
+    }
+}

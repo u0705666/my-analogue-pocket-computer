@@ -1,0 +1,19 @@
+{
+    "data": {
+        "magic": "APF_VER_1",
+        "data_slots": [
+            {
+                "name": "PPU Command Stream",
+                "id": 1,
+                "required": true,
+                "parameters": 3,
+                "extensions": [
+                    "bin"
+                ],
+                "size_exact": 0,
+                "size_maximum": "0x00200000",
+                "address": "0x00000000"
+            }
+        ]
+    }
+}

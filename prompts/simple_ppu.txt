@@ -1,0 +1,14 @@
+Task here is to build a simple system.
+
+system structure:
+- the top level module is core/core_simple_ppu.v which will be wired in apf/apf_top.v.
+- It contains a pixel process unit(PPU) which contains a very simple instruction set. (eg. drawing a line, drawing a polygon, fill with color, etc)
+- The PPU should drive a 320x288 pixel rgb display. (same as core_top_basic_asset.v)
+- SDRam is available for you to use(see core_top_basic_asset for examples)
+- It contains a simple control unit which read instruction files(bin file) from external storage and sent the commands to PPU to render on startup
+
+Context:
+The device is analogue pocket. The user manual is in analogue_pocket_manual folder
+core_top_basic_asset and core_top_ngy.v provides examples on how to interact with the hardware.
+
+Ask me any clarification questions before start implementing.

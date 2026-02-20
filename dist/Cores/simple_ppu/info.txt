@@ -1,0 +1,4 @@
+simple_ppu core package
+
+This folder contains APF metadata files for the simple PPU core.
+Provide slot 1 with a .bin command stream to render the framebuffer on startup.
