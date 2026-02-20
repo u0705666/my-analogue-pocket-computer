@@ -165,7 +165,6 @@ always @(posedge clk or negedge reset_n) begin
                 if((line_x0 == line_x1) && (line_y0 == line_y1)) begin
                     state <= ST_DONE;
                 end else begin
-                    line_e2 = line_err <<< 1;
                     line_next_err = line_err;
                     if(line_e2 >= line_dy) begin
                         line_next_err = line_next_err + line_dy;
