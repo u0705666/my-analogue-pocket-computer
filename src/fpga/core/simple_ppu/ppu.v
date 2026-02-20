@@ -58,9 +58,11 @@ reg [31:0] clear_word_index;
 reg [31:0] clear_word_data;
 
 reg signed [15:0] line_x0, line_y0, line_x1, line_y1;
-reg signed [15:0] line_dx, line_dy, line_err, line_e2;
+reg signed [15:0] line_dx, line_dy, line_err;
 reg signed [15:0] line_sx, line_sy, line_next_err;
 reg [15:0] line_color;
+
+wire signed [15:0] line_e2 = line_err <<< 1;
 
 reg [15:0] rect_x, rect_y, rect_w, rect_h, rect_color;
 reg        rect_fill;
@@ -87,7 +89,7 @@ always @(posedge clk or negedge reset_n) begin
         clear_word_index <= 32'd0;
         clear_word_data <= 32'd0;
         line_x0 <= 16'sd0; line_y0 <= 16'sd0; line_x1 <= 16'sd0; line_y1 <= 16'sd0;
-        line_dx <= 16'sd0; line_dy <= 16'sd0; line_err <= 16'sd0; line_e2 <= 16'sd0;
+        line_dx <= 16'sd0; line_dy <= 16'sd0; line_err <= 16'sd0;
         line_sx <= 16'sd0; line_sy <= 16'sd0; line_next_err <= 16'sd0; line_color <= 16'd0;
         rect_x <= 16'd0; rect_y <= 16'd0; rect_w <= 16'd0; rect_h <= 16'd0; rect_color <= 16'd0;
         rect_fill <= 1'b0; rect_cur_x <= 16'd0; rect_cur_y <= 16'd0;
