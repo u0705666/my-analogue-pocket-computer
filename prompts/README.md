@@ -1,0 +1,1 @@
+Do not use any info in this folder as context to AI. this folder is a collection of prompts.
