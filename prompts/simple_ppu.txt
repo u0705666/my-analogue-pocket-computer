@@ -1,3 +1,5 @@
+Prompt 1:
+
 Task here is to build a simple system.
 
 system structure:
@@ -12,3 +14,14 @@ The device is analogue pocket. The user manual is in analogue_pocket_manual fold
 core_top_basic_asset and core_top_ngy.v provides examples on how to interact with the hardware.
 
 Ask me any clarification questions before start implementing.
+
+
+Prompt 2:
+
+Refactor core_simple_ppu.v into seprate modules.
+All modules should be under core/simple_ppu execept core_simple_ppu.v itself.
+sub modules:
+1. ppu.v: the ppu itself.
+2. cpu.v: the tiny controller that load bin file to ram and send commands to ppu.
+3. sd ram or external file control logic module. you can use your own judgement here. 
+The goal is to make the files more readable and not too big.

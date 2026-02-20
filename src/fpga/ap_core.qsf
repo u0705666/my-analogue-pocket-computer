@@ -741,6 +741,9 @@ set_global_assignment -name SEED 2
 set_global_assignment -name VERILOG_FILE core/core_top_ngy.v
 set_global_assignment -name VERILOG_FILE core/core_top_basic_asset.v
 set_global_assignment -name VERILOG_FILE core/core_simple_ppu.v
+set_global_assignment -name VERILOG_FILE core/simple_ppu/ppu.v
+set_global_assignment -name VERILOG_FILE core/simple_ppu/cpu.v
+set_global_assignment -name VERILOG_FILE core/simple_ppu/sdram_ctrl.v
 set_global_assignment -name VERILOG_FILE core/mf_linebuf.v
 set_global_assignment -name QIP_FILE core/mf_linebuf.qip
 set_global_assignment -name VERILOG_FILE core/io_sdram.v
