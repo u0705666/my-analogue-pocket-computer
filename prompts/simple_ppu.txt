@@ -25,3 +25,8 @@ sub modules:
 2. cpu.v: the tiny controller that load bin file to ram and send commands to ppu.
 3. sd ram or external file control logic module. you can use your own judgement here. 
 The goal is to make the files more readable and not too big.
+
+Prompt 3:
+Now let's test the ppu alone without loading bin file.
+create a new core core_top_simple_ppu_no_bin_file.v
+This core will just issue a set of commands (could be drawing a triangle) to the ppu.v

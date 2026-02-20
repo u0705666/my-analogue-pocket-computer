@@ -346,7 +346,7 @@ io_bridge_peripheral ibs (
 ///////////////////////////////////////////////////
 // instantiate the user core top-level
 
-core_simple_ppu ic (
+core_top_simple_ppu_no_bin_file ic (
 
     // physical connections 
     //

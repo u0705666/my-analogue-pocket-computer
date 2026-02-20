@@ -740,6 +740,7 @@ set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
 set_global_assignment -name SEED 2
 set_global_assignment -name VERILOG_FILE core/core_top_ngy.v
 set_global_assignment -name VERILOG_FILE core/core_top_basic_asset.v
+set_global_assignment -name VERILOG_FILE core/core_top_simple_ppu_no_bin_file.v
 set_global_assignment -name VERILOG_FILE core/core_simple_ppu.v
 set_global_assignment -name VERILOG_FILE core/simple_ppu/ppu.v
 set_global_assignment -name VERILOG_FILE core/simple_ppu/cpu.v
