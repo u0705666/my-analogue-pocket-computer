@@ -18,14 +18,17 @@ module Alu(
 
     always@(*) begin
         case(op)
-            2'b0: begin
+            2'b00: begin
                 result = a&b;
             end
-            2'b1: begin
+            2'b01: begin
                 result = a|b;
             end
             2'b10: begin
                 result = sum;
+            end
+            default: begin
+                result = sum;  // Default to sum for op=3
             end
         endcase
     end
