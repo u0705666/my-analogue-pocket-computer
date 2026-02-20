@@ -30,3 +30,13 @@ Prompt 3:
 Now let's test the ppu alone without loading bin file.
 create a new core core_top_simple_ppu_no_bin_file.v
 This core will just issue a set of commands (could be drawing a triangle) to the ppu.v
+
+
+Error (10137): Verilog HDL Procedural Assignment error at ppu.v(168): object "line_e2" on left-hand side of assignment must have a variable data type
+Info (144001): Generated suppressed messages file C:/myprojects/my-analogue-pocket-computer/src/fpga/output_files/ap_core.map.smsg
+Error: Quartus Prime Analysis & Synthesis was unsuccessful. 1 error, 6 warnings
+	Error: Peak virtual memory: 652 megabytes
+	Error: Processing ended: Fri Feb 20 12:24:35 2026
+	Error: Elapsed time: 00:00:12
+	Error: Total CPU time (on all processors): 00:00:01
+Error (293001): Quartus Prime Full Compilation was unsuccessful. 3 errors, 6 warnings
