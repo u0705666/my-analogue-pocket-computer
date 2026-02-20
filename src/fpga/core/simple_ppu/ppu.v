@@ -45,9 +45,10 @@ localparam [7:0]
     ST_RECT_PIXEL   = 8'd8,
     ST_RECT_STEP    = 8'd9,
     ST_PIX_RD_REQ   = 8'd10,
-    ST_PIX_RD_WAIT  = 8'd11,
-    ST_PIX_WR_REQ   = 8'd12,
-    ST_DONE         = 8'd13;
+    ST_PIX_RD_WAIT0 = 8'd11,
+    ST_PIX_RD_WAIT1 = 8'd12,
+    ST_PIX_WR_REQ   = 8'd13,
+    ST_DONE         = 8'd14;
 
 reg [7:0] state;
 reg [7:0] resume_state;
@@ -230,11 +231,16 @@ always @(posedge clk or negedge reset_n) begin
                     if(!mem_word_busy) begin
                         mem_word_rd <= 1'b1;
                         mem_word_addr <= FB_BASE_WORD + ((pix_y * VID_H_ACTIVE + pix_x) >> 1);
-                        state <= ST_PIX_RD_WAIT;
+                        // SDRAM word-read data is not guaranteed same-cycle or next-cycle.
+                        // Wait two cycles before consuming mem_word_q for deterministic RMW.
+                        state <= ST_PIX_RD_WAIT0;
                     end
                 end
             end
-            ST_PIX_RD_WAIT: begin
+            ST_PIX_RD_WAIT0: begin
+                state <= ST_PIX_RD_WAIT1;
+            end
+            ST_PIX_RD_WAIT1: begin
                 if(pix_hi) pix_word_new <= {pix_color, mem_word_q[15:0]};
                 else       pix_word_new <= {mem_word_q[31:16], pix_color};
                 state <= ST_PIX_WR_REQ;
