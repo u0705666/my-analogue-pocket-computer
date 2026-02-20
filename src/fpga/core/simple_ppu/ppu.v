@@ -228,13 +228,10 @@ always @(posedge clk or negedge reset_n) begin
                     pix_index <= pix_y * VID_H_ACTIVE + pix_x;
                     pix_hi <= (pix_y * VID_H_ACTIVE + pix_x) & 16'd1;
                     pix_word_addr <= FB_BASE_WORD + ((pix_y * VID_H_ACTIVE + pix_x) >> 1);
-                    if(!mem_word_busy) begin
-                        mem_word_rd <= 1'b1;
-                        mem_word_addr <= FB_BASE_WORD + ((pix_y * VID_H_ACTIVE + pix_x) >> 1);
-                        // SDRAM word-read data is not guaranteed same-cycle or next-cycle.
-                        // Wait two cycles before consuming mem_word_q for deterministic RMW.
-                        state <= ST_PIX_RD_WAIT0;
-                    end
+                    // Debug-safe write path: avoid SDRAM read-modify-write timing by
+                    // writing both halfwords with the same color.
+                    pix_word_new <= {pix_color, pix_color};
+                    state <= ST_PIX_WR_REQ;
                 end
             end
             ST_PIX_RD_WAIT0: begin
